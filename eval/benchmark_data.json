@@ -1,0 +1,59 @@
+[
+  {
+    "id": "q1",
+    "query": "How should division by zero be handled in the calculator?",
+    "expected_source": "calculator_spec.md",
+    "expected_reference": "Error Handling Specifications",
+    "category": "error_handling"
+  },
+  {
+    "id": "q2",
+    "query": "What are the core arithmetic operations supported by the calculator module?",
+    "expected_source": "calculator_spec.md",
+    "expected_reference": "Core Functions",
+    "category": "architecture"
+  },
+  {
+    "id": "q3",
+    "query": "Where are arithmetic operations verified using unit test fixtures?",
+    "expected_source": "calculator_spec.md",
+    "expected_reference": "Testing Policy",
+    "category": "testing"
+  },
+  {
+    "id": "q4",
+    "query": "What exception does divide function raise when b equals zero in calculator.py?",
+    "expected_source": "calculator.py",
+    "expected_reference": "calculator.py",
+    "category": "code_inspection"
+  },
+  {
+    "id": "q5",
+    "query": "Show the implementation of the add and subtract functions.",
+    "expected_source": "calculator.py",
+    "expected_reference": "calculator.py",
+    "category": "code_inspection"
+  },
+  {
+    "id": "q6",
+    "query": "What message is raised when divisor b is 0 in divide?",
+    "expected_source": "calculator_spec.md",
+    "expected_reference": "Cannot divide by zero",
+    "category": "error_handling"
+  },
+  {
+    "id": "q7",
+    "query": "What test fixture checks test_divide_by_zero?",
+    "expected_source": "test_calculator.py",
+    "expected_reference": "test_calculator.py",
+    "category": "test_verification"
+  },
+  {
+    "id": "q8",
+    "query": "What is the purpose of the calculator module according to the spec overview?",
+    "expected_source": "calculator_spec.md",
+    "expected_reference": "Overview",
+    "category": "documentation"
+  }
+]
+

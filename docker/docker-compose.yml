@@ -1,0 +1,17 @@
+services:
+  sentinelforge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: sentinelforge_app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_MODE=local
+      - LLM_PROVIDER=mock
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ../.sentinelforge:/app/.sentinelforge
+    restart: unless-stopped
+
