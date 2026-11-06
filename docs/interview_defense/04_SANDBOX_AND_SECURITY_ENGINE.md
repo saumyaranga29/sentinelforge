@@ -30,9 +30,15 @@
 > 2. Normalizing case using `os.path.normcase()`.
 > 3. Verifying that the candidate path strictly starts with the workspace root plus the path separator. Any path escaping the boundary raises a `SecurityViolationError` and logs a security audit event."
 
-### Question 3: "Why did you support JavaScript/Node.js in addition to Python?"
+### Question 3: "How does SentinelForge satisfy the requirement for >20 automated tests, and how are the 14 security & adversarial tests structured?"
 **Candidate Answer**:
-> "Supporting a second language workflow was a key bonus engineering capability (+2 points). We built `JavaScriptTestWorkflow` in `sentinelforge/sandbox/language_runners.py` to run Node.js native test runner (`node --test`) and syntax compilation (`node -c`). The same path jails, command allowlists, and timeout monitors apply uniformly to both Python and JavaScript workflows."
+> "SentinelForge implements **35 automated tests** (exceeding the 20-test threshold for +2 bonus points). 14 of these tests are dedicated specifically to adversarial and security vectors:
+> 1. **Filesystem Jail & Escape**: `test_path_traversal_blocked` (`../../etc/passwd`), `test_windows_path_traversal_blocked` (Windows drive root escapes), `test_disallowed_file_extension_blocked`.
+> 2. **Execution & Command Injection**: `test_shell_injection_metacharacters_blocked` (rejecting `;`, `|`, `&`), `test_unauthorized_command_blocked` (blocking non-allowlisted binaries).
+> 3. **Resource & Denial-of-Service**: `test_timeout_enforced` (10s process cap), `test_output_truncation_limit` (50KB stream cap).
+> 4. **Information Leakage**: `test_environment_scrubbing` (verifying host credentials are scrubbed).
+> 5. **Indirect Injection & Jailbreaks**: `test_instruction_override_detected`, `test_jailbreak_mode_detected`, `test_special_token_injection_detected`, `test_delimiter_neutralization`, and `test_uuid_encapsulation_boundary`.
+> 6. **Human-in-the-Loop Integrity**: `test_zero_silent_mutation_invariant` and `test_human_rejection_preserves_repo` proving no change is silently applied."
 
 ---
 
