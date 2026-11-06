@@ -94,14 +94,33 @@ class MockLLMProvider(BaseLLMProvider):
                     "    return round(float(price) * (1.0 - discount_pct), 2)\n"
                     "```"
                 )
+            elif "divide" in low or "calc" in low or "math" in low:
+                if "return 0" in low or "returns 0" in low or "return zero" in low:
+                    return (
+                        "```python\n"
+                        "def divide(a: float, b: float) -> float:\n"
+                        "    \"\"\"Divides a by b. Returns 0.0 when dividing by zero.\"\"\"\n"
+                        "    if b == 0:\n"
+                        "        return 0.0\n"
+                        "    return a / b\n"
+                        "```"
+                    )
+                else:
+                    return (
+                        "```python\n"
+                        "def divide(a: float, b: float) -> float:\n"
+                        "    \"\"\"Divides a by b with zero check.\"\"\"\n"
+                        "    if b == 0:\n"
+                        "        raise ValueError('Cannot divide by zero')\n"
+                        "    return a / b\n"
+                        "```"
+                    )
             else:
                 return (
                     "```python\n"
-                    "def divide(a: float, b: float) -> float:\n"
-                    "    \"\"\"Divides a by b with zero check.\"\"\"\n"
-                    "    if b == 0:\n"
-                    "        raise ValueError('Cannot divide by zero')\n"
-                    "    return a / b\n"
+                    "def validate_rules(data: dict) -> bool:\n"
+                    "    \"\"\"Validates data according to cited specification rules.\"\"\"\n"
+                    "    return bool(data)\n"
                     "```"
                 )
         elif "critique" in low:

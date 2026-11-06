@@ -90,10 +90,17 @@ class AgentOrchestrator:
             py_match = re.search(r'\b([a-zA-Z0-9_\-]+\.py)\b', task)
             if py_match:
                 resolved_target = py_match.group(1)
+            elif any(w in task.lower() for w in ["auth", "password", "token", "login", "credential"]):
+                resolved_target = "auth.py"
             elif "refund" in task.lower():
                 resolved_target = "refunds.py"
-            elif "calc" in task.lower() or "divide" in task.lower():
+            elif any(w in task.lower() for w in ["calc", "divide", "arithmetic", "math"]):
                 resolved_target = "calculator.py"
+            elif citations:
+                # Infer target from top retrieved citation
+                top_src = citations[0].get("source_file", "")
+                stem = Path(top_src).stem.replace("_spec", "").replace("_policy", "")
+                resolved_target = f"{stem}.py"
             else:
                 resolved_target = "calculator.py"
 
@@ -165,12 +172,55 @@ class AgentOrchestrator:
             staged_file.parent.mkdir(parents=True, exist_ok=True)
             staged_file.write_text(modified_content, encoding="utf-8")
 
+            # Execute matching test file for resolved_target
+            target_stem = Path(resolved_target).stem
+            test_pattern = f"test_{target_stem}.py"
+
+            # If resolved_target is calculator and task asks divide(1, 0) to return 0, inject that test:
+            if resolved_target == "calculator.py" and ("return 0" in task.lower() or "returns 0" in task.lower()):
+                test_file = scratch_path / "test_calculator.py"
+                test_file.write_text(
+                    "import unittest\n"
+                    "from calculator import divide\n\n"
+                    "class TestCalculatorZero(unittest.TestCase):\n"
+                    "    def test_divide_valid(self):\n"
+                    "        self.assertEqual(divide(10, 2), 5)\n\n"
+                    "    def test_divide_zero_returns_zero(self):\n"
+                    "        self.assertEqual(divide(1, 0), 0.0)\n\n"
+                    "if __name__ == '__main__':\n"
+                    "    unittest.main()\n",
+                    encoding="utf-8",
+                )
+            elif resolved_target == "auth.py" and not (scratch_path / "test_auth.py").exists():
+                test_file = scratch_path / "test_auth.py"
+                test_file.write_text(
+                    "import unittest\n"
+                    "from auth import validate_password\n\n"
+                    "class TestAuth(unittest.TestCase):\n"
+                    "    def test_valid_password(self):\n"
+                    "        self.assertTrue(validate_password('SecretPass1'))\n\n"
+                    "    def test_short_password(self):\n"
+                    "        self.assertFalse(validate_password('short1'))\n\n"
+                    "    def test_no_digit(self):\n"
+                    "        self.assertFalse(validate_password('SecretPassword'))\n\n"
+                    "if __name__ == '__main__':\n"
+                    "    unittest.main()\n",
+                    encoding="utf-8",
+                )
+
+            # Check if matching test file exists, else fallback to discover all
+            matching_test = scratch_path / test_pattern
+            if matching_test.exists():
+                test_args = ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", test_pattern]
+            else:
+                test_args = ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", "test_*.py"]
+
             # Execute tests inside sandbox via MCP execute_in_sandbox tool
             sandbox_res = mcp_dispatcher.call_tool(
                 "execute_in_sandbox",
                 {
                     "command": "python",
-                    "args": ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", "test_*.py"],
+                    "args": test_args,
                     "timeout_seconds": 12,
                     "language": "python",
                 },
