@@ -1,6 +1,6 @@
 # Project SentinelForge
 
-[![CI/CD Pipeline](https://github.com/dexter-platform/sentinelforge/actions/workflows/ci.yml/badge.svg)](https://github.com/dexter-platform/sentinelforge/actions)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-brightgreen.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/MCP-Official%20FastMCP%201.3+-purple.svg)](https://modelcontextprotocol.io)
