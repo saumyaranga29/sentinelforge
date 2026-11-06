@@ -239,7 +239,7 @@
                 <span class="text-[10.5px] font-mono text-slate-400">Proposed Diff:</span>
                 <span id="diff-filename" class="text-xs font-mono text-emerald-300 font-semibold">calculator.py</span>
               </div>
-              <span class="text-[10px] font-mono text-amber-400/90 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-800/40 font-medium">
+              <span id="diff-status-badge" class="text-[10px] font-mono text-amber-400/90 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-800/40 font-medium">
                 Pending Approval
               </span>
             </div>
@@ -258,8 +258,11 @@
             <pre id="sandbox-output" class="text-[11px] text-slate-300 whitespace-pre-wrap max-h-24 overflow-y-auto mt-1"></pre>
           </div>
 
+          <!-- Approval Result Banner -->
+          <div id="approval-result-banner" class="hidden p-4 rounded-lg flex flex-col gap-2.5 transition-all animate-fadeIn"></div>
+
           <!-- Decision Dock -->
-          <div class="p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 flex items-center justify-between gap-4">
+          <div id="decision-dock" class="p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 flex items-center justify-between gap-4">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
