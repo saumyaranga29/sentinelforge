@@ -55,3 +55,6 @@ data/
 .sentinelforge/
 chroma_db/
 
+# Candidate Interview Preparation Notes (Local only - excluded from public GitHub)
+docs/interview_defense/
+
