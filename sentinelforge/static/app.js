@@ -16,6 +16,14 @@ const API = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ filename, content })
   }).then(r => r.json()),
+  ragUpload: (file) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return fetch('/api/rag/ingest/upload', {
+      method: 'POST',
+      body: fd
+    }).then(r => r.json());
+  },
   agentRun: (task, target_file = null) => fetch('/api/agent/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -124,8 +132,7 @@ async function initKnowledgeBase() {
     fileInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       for (const file of files) {
-        const text = await file.text();
-        await addDocumentToKB(file.name, text);
+        await uploadDocument(file);
       }
     });
 
@@ -143,10 +150,29 @@ async function initKnowledgeBase() {
       dropZone.classList.remove('border-emerald-500/70', 'bg-emerald-500/5');
       const files = Array.from(e.dataTransfer.files);
       for (const file of files) {
-        const text = await file.text();
-        await addDocumentToKB(file.name, text);
+        await uploadDocument(file);
       }
     });
+  }
+}
+
+async function uploadDocument(file) {
+  try {
+    const t0 = performance.now();
+    const res = await API.ragUpload(file);
+    const dur = Math.round(performance.now() - t0);
+
+    // Live latency measurement
+    const latIngestEl = document.getElementById('lat-ingest');
+    if (latIngestEl) latIngestEl.textContent = `${dur} ms`;
+
+    // Refresh KB list from live vector store
+    await refreshKBStats();
+
+    // Append to live audit log
+    appendAuditLog(`ingest [${file.name}] ${res.status === 'skipped' ? 'deduped' : 'indexed'}`);
+  } catch (err) {
+    console.error('KB Upload Error:', err);
   }
 }
 

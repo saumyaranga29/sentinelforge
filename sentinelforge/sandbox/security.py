@@ -30,7 +30,7 @@ class SandboxSecurityValidator:
 
     # Safe file extensions allowed inside the sandbox workspace
     ALLOWED_EXTENSIONS: Set[str] = {
-        ".py", ".js", ".ts", ".json", ".md", ".txt", ".yaml", ".yml"
+        ".py", ".js", ".ts", ".json", ".md", ".txt", ".yaml", ".yml", ".pdf"
     }
 
     # Dangerous shell injection characters

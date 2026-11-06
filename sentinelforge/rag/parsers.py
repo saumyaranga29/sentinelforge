@@ -40,27 +40,33 @@ class PDFDocumentParser(BaseDocumentParser):
             # Fallback if pypdf is not installed
             return chunks
 
-        with open(file_path, "rb") as f:
-            reader = pypdf.PdfReader(f)
-            for page_idx, page in enumerate(reader.pages):
-                text = page.extract_text() or ""
-                text = text.strip()
-                if not text:
-                    continue
+        try:
+            with open(file_path, "rb") as f:
+                reader = pypdf.PdfReader(f)
+                for page_idx, page in enumerate(reader.pages):
+                    try:
+                        text = page.extract_text() or ""
+                    except Exception:
+                        text = ""
+                    text = text.strip()
+                    if not text:
+                        continue
 
-                content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
-                chunk_id = f"{file_path.name}_p{page_idx + 1}_{content_hash[:8]}"
+                    content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+                    chunk_id = f"{file_path.name}_p{page_idx + 1}_{content_hash[:8]}"
 
-                chunks.append(
-                    DocumentChunk(
-                        chunk_id=chunk_id,
-                        content=text,
-                        source_file=file_path.name,
-                        source_type="pdf",
-                        content_hash=content_hash,
-                        page_number=page_idx + 1,
+                    chunks.append(
+                        DocumentChunk(
+                            chunk_id=chunk_id,
+                            content=text,
+                            source_file=file_path.name,
+                            source_type="pdf",
+                            content_hash=content_hash,
+                            page_number=page_idx + 1,
+                        )
                     )
-                )
+        except Exception:
+            pass
         return chunks
 
 
