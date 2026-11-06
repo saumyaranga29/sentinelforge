@@ -84,7 +84,19 @@ class AgentOrchestrator:
 
         # --- Stage 4: Patch Proposal via MCP ---
         # Identify target file if not provided
-        resolved_target = target_file or "calculator.py"
+        resolved_target = target_file
+        if not resolved_target:
+            import re
+            py_match = re.search(r'\b([a-zA-Z0-9_\-]+\.py)\b', task)
+            if py_match:
+                resolved_target = py_match.group(1)
+            elif "refund" in task.lower():
+                resolved_target = "refunds.py"
+            elif "calc" in task.lower() or "divide" in task.lower():
+                resolved_target = "calculator.py"
+            else:
+                resolved_target = "calculator.py"
+
         target_full_path = self.workspace_root / resolved_target
 
         original_content = ""

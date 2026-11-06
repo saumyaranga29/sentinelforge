@@ -27,32 +27,100 @@ class MockLLMProvider(BaseLLMProvider):
         # Check what stage or task is being requested
         low = user_prompt.lower()
         if "analyze" in low or "plan" in low:
-            return (
-                "### Task Plan\n"
-                "1. Analyze repository architecture and target files.\n"
-                "2. Retrieve relevant context regarding arithmetic functions.\n"
-                "3. Formulate minimal bug fix for calculator divide-by-zero check.\n"
-                "4. Execute tests inside sandbox to verify solution.\n"
-                "5. Present unified diff for human approval."
-            )
-        elif "diff" in low or "patch" in low or "fix" in low:
-            return (
-                "```python\n"
-                "def divide(a: float, b: float) -> float:\n"
-                "    \"\"\"Divides a by b with zero check.\"\"\"\n"
-                "    if b == 0:\n"
-                "        raise ValueError('Cannot divide by zero')\n"
-                "    return a / b\n"
-                "```"
-            )
+            if "refund" in low:
+                return (
+                    "### Cognitive Execution Plan\n"
+                    "1. Analyze repository architecture and verify calculate_refund() in refunds.py.\n"
+                    "2. Retrieve refund eligibility policy from indexed Knowledge Base (docs/refund_policy.md).\n"
+                    "3. Synthesize minimal patch enforcing 30-day cutoff per business rules.\n"
+                    "4. Execute isolated verification tests (test_refunds.py) in scratch sandbox.\n"
+                    "5. Stage unified diff proposal for explicit human review (Zero Silent Mutation)."
+                )
+            elif "password" in low or "auth" in low or "token" in low:
+                return (
+                    "### Cognitive Execution Plan\n"
+                    "1. Analyze authentication module structure and security requirements.\n"
+                    "2. Retrieve password complexity rules from indexed specifications.\n"
+                    "3. Synthesize validation routine enforcing minimum length and character classes.\n"
+                    "4. Run isolated regression tests in sandbox environment.\n"
+                    "5. Stage unified diff proposal for explicit human review (Zero Silent Mutation)."
+                )
+            elif "divide" in low or "calc" in low:
+                return (
+                    "### Cognitive Execution Plan\n"
+                    "1. Inspect calculator.py arithmetic routines and AST structure.\n"
+                    "2. Retrieve error handling specification from docs/calculator_spec.md.\n"
+                    "3. Synthesize divide-by-zero validation patch.\n"
+                    "4. Execute isolated unit test suite in scratch sandbox.\n"
+                    "5. Stage unified diff proposal for explicit human review (Zero Silent Mutation)."
+                )
+            else:
+                return (
+                    "### Cognitive Execution Plan\n"
+                    "1. Analyze repository context and requirements for the requested task.\n"
+                    "2. Retrieve relevant domain specifications and cited guidelines from indexed Knowledge Base.\n"
+                    "3. Formulate minimal unified patch adhering to repository constraints.\n"
+                    "4. Execute isolated verification tests in sandboxed scratch space.\n"
+                    "5. Stage unified diff for explicit human approval (Zero Silent Mutation)."
+                )
+        elif "diff" in low or "patch" in low or "fix" in low or "code" in low:
+            if "refund" in low:
+                return (
+                    "```python\n"
+                    "def calculate_refund(days_since_purchase: int, amount: float) -> float:\n"
+                    "    \"\"\"Calculates refund amount based on 30-day policy.\"\"\"\n"
+                    "    if days_since_purchase > 30:\n"
+                    "        return 0.0\n"
+                    "    return float(amount)\n"
+                    "```"
+                )
+            elif "password" in low or "auth" in low or "token" in low:
+                return (
+                    "```python\n"
+                    "def validate_password(password: str) -> bool:\n"
+                    "    \"\"\"Validates password according to security policy (min 8 chars, 1 digit, 1 upper).\"\"\"\n"
+                    "    if not password or len(password) < 8:\n"
+                    "        return False\n"
+                    "    return any(c.isdigit() for c in password) and any(c.isupper() for c in password)\n"
+                    "```"
+                )
+            elif "discount" in low or "price" in low or "tier" in low:
+                return (
+                    "```python\n"
+                    "def calculate_discount(price: float, tier: str) -> float:\n"
+                    "    \"\"\"Calculates customer discount according to pricing policy tiers.\"\"\"\n"
+                    "    rates = {'gold': 0.20, 'silver': 0.10, 'bronze': 0.05}\n"
+                    "    discount_pct = rates.get(tier.lower(), 0.0)\n"
+                    "    return round(float(price) * (1.0 - discount_pct), 2)\n"
+                    "```"
+                )
+            else:
+                return (
+                    "```python\n"
+                    "def divide(a: float, b: float) -> float:\n"
+                    "    \"\"\"Divides a by b with zero check.\"\"\"\n"
+                    "    if b == 0:\n"
+                    "        raise ValueError('Cannot divide by zero')\n"
+                    "    return a / b\n"
+                    "```"
+                )
         elif "critique" in low:
-            return (
-                "### Self-Critique\n"
-                "- Unified diff accurately addresses zero division edge case.\n"
-                "- No new dependencies introduced.\n"
-                "- Regression risk: Low.\n"
-                "- Sandbox verification: Pass."
-            )
+            if "refund" in low:
+                return (
+                    "### Self-Critique & Boundary Analysis\n"
+                    "- Unified diff enforces 30-day refund expiration cutoff as specified.\n"
+                    "- Maintains backwards compatibility with valid non-expired transactions.\n"
+                    "- Zero side-effects on external dependencies.\n"
+                    "- Verified in isolated scratch sandbox (test_refunds.py passed)."
+                )
+            else:
+                return (
+                    "### Self-Critique & Boundary Analysis\n"
+                    "- Unified diff accurately addresses specified requirements.\n"
+                    "- No new dependencies introduced.\n"
+                    "- Regression risk: Low.\n"
+                    "- Sandbox verification: Pass."
+                )
         else:
             return "Task completed successfully according to SentinelForge security policies."
 

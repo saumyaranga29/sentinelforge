@@ -51,18 +51,19 @@
         <!-- Model Pill -->
         <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
-          <span id="header-model">Local · Ollama qwen2.5-coder:7b</span>
+          <span id="header-model">Detecting runtime environment...</span>
         </div>
 
         <!-- Privacy Status Pill -->
         <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
-          <span>Processed locally · 0 external calls</span>
+          <span id="header-privacy-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="header-privacy">Processed locally · 0 external calls</span>
         </div>
 
         <!-- MCP Health Pill -->
         <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          <span id="header-mcp-status">MCP healthy · 7 tools</span>
+          <span id="header-mcp-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+          <span id="header-mcp-status">MCP connecting...</span>
         </div>
 
         <!-- Docs Link -->
@@ -86,7 +87,7 @@
       <div class="workstation-card p-4 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase font-mono">Knowledge Base</h2>
-          <span id="kb-count-badge" class="text-[10px] font-mono text-slate-500">3 sources</span>
+          <span id="kb-count-badge" class="text-[10px] font-mono text-slate-500">syncing...</span>
         </div>
 
         <!-- Drag & Drop Zone -->
@@ -97,42 +98,18 @@
           <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.md,.txt,.json,.py,.js,.ts" />
         </div>
 
-        <!-- Ingested Documents List -->
+        <!-- Ingested Documents List (Dynamically populated from live /api/rag/stats) -->
         <div id="kb-file-list" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
-          
-          <!-- Sample Doc 1 -->
-          <div class="flex items-center justify-between p-2 rounded-md bg-white/[0.02] border border-white/[0.03] hover:border-white/[0.08] transition-all">
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-mono text-slate-200 truncate">billing_service/</p>
-              <p class="text-[10px] text-slate-500 font-mono">14 files · 9f2c1a</p>
-            </div>
-            <span class="badge-indexed">indexed</span>
+          <div class="p-2 text-center text-[10.5px] font-mono text-slate-500">
+            Syncing indexed knowledge sources...
           </div>
-
-          <!-- Sample Doc 2 -->
-          <div class="flex items-center justify-between p-2 rounded-md bg-white/[0.02] border border-white/[0.03] hover:border-white/[0.08] transition-all">
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-mono text-slate-200 truncate">refund_policy.pdf</p>
-              <p class="text-[10px] text-slate-500 font-mono">12 pages · 41be07</p>
-            </div>
-            <span class="badge-indexed">indexed</span>
-          </div>
-
-          <!-- Sample Doc 3 -->
-          <div class="flex items-center justify-between p-2 rounded-md bg-white/[0.02] border border-white/[0.03] hover:border-white/[0.08] transition-all">
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-mono text-slate-200 truncate">api_notes_copy.md</p>
-              <p class="text-[10px] text-slate-500 font-mono">same hash as api_notes.md</p>
-            </div>
-            <span class="badge-deduped">deduped</span>
-          </div>
-
         </div>
 
         <!-- Footer Stats -->
         <div class="pt-2 border-t border-white/[0.06] text-[10.5px] font-mono text-slate-500 flex items-center justify-between">
-          <span id="kb-footer-stats">61 chunks · BGE-small · local vector store</span>
+          <span id="kb-footer-stats">Loading vector index stats...</span>
         </div>
+      </div>
       </div>
 
       <!-- Card: Red-Team Mode -->
@@ -154,10 +131,10 @@
         <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500">Quick Test Presets</span>
         <div class="flex flex-col gap-1.5">
           <button id="preset-refunds" class="text-left font-mono text-[11px] text-slate-400 hover:text-emerald-300 p-1.5 rounded hover:bg-white/[0.03] transition-all">
-            ▸ Policy: Reject refunds &gt;30 days
+            ▸ Policy: Reject refunds &gt;30 days (refunds.py)
           </button>
           <button id="preset-calculator" class="text-left font-mono text-[11px] text-slate-400 hover:text-emerald-300 p-1.5 rounded hover:bg-white/[0.03] transition-all">
-            ▸ Fix divide() zero check & tests
+            ▸ Arithmetic: Fix divide() zero check (calculator.py)
           </button>
         </div>
       </div>
@@ -175,7 +152,7 @@
           <div class="flex-1">
             <textarea id="agent-task-input" rows="2" 
               class="w-full bg-transparent text-sm text-slate-200 placeholder-slate-500 font-normal focus:outline-none resize-none leading-relaxed"
-              placeholder="Ask a question or describe code changes...">Reject refunds older than 30 days per the policy. Fix calculate_refund() and add tests.</textarea>
+              placeholder="Ask a question or describe code changes...">Reject refunds older than 30 days per the policy. Fix calculate_refund() in refunds.py and verify tests.</textarea>
           </div>
           <button id="btn-run-agent" class="bg-[#10b981] hover:bg-[#059669] text-black font-semibold text-xs px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-md shadow-emerald-950/40 whitespace-nowrap">
             <span id="run-btn-spinner" class="hidden animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
@@ -237,7 +214,7 @@
             <div class="px-3.5 py-2 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-[10.5px] font-mono text-slate-400">Proposed Diff:</span>
-                <span id="diff-filename" class="text-xs font-mono text-emerald-300 font-semibold">calculator.py</span>
+                <span id="diff-filename" class="text-xs font-mono text-emerald-300 font-semibold">refunds.py</span>
               </div>
               <span id="diff-status-badge" class="text-[10px] font-mono text-amber-400/90 px-2 py-0.5 rounded bg-amber-950/40 border border-amber-800/40 font-medium">
                 Pending Approval
@@ -250,12 +227,12 @@
           <div class="rounded-lg bg-[#05070a] border border-white/[0.08] p-3 flex flex-col gap-1 font-mono text-xs">
             <div class="flex items-center justify-between pb-1 border-b border-white/[0.06]">
               <span class="text-[10.5px] text-slate-400 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span id="sandbox-indicator-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                 Sandbox Execution Terminal
               </span>
-              <span id="sandbox-status-tag" class="text-[10px] text-emerald-400 font-semibold">EXIT CODE 0 · ALL TESTS PASSED</span>
+              <span id="sandbox-status-tag" class="text-[10px] text-slate-400 font-mono">Awaiting execution</span>
             </div>
-            <pre id="sandbox-output" class="text-[11px] text-slate-300 whitespace-pre-wrap max-h-24 overflow-y-auto mt-1"></pre>
+            <pre id="sandbox-output" class="text-[11px] text-slate-400 whitespace-pre-wrap max-h-24 overflow-y-auto mt-1 font-mono">// Test runner output will stream here during sandbox execution</pre>
           </div>
 
           <!-- Approval Result Banner -->
@@ -299,39 +276,39 @@
       <div class="workstation-card p-4 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase font-mono">MCP Calls</h2>
-          <span class="text-[10px] font-mono text-emerald-400">live</span>
+          <span id="mcp-live-badge" class="text-[10px] font-mono text-slate-500">connecting...</span>
         </div>
 
         <div class="flex flex-col gap-1.5 font-mono text-xs">
           
           <div class="flex items-center justify-between py-1 border-b border-white/[0.04] text-slate-300">
             <span class="text-slate-400">ingest_content</span>
-            <span id="lat-ingest" class="text-emerald-400 text-[11px]">212 ms</span>
+            <span id="lat-ingest" class="text-slate-500 text-[11px]">--</span>
           </div>
 
           <div class="flex items-center justify-between py-1 border-b border-white/[0.04] text-slate-300">
             <span class="text-slate-400">retrieve_context</span>
-            <span id="lat-retrieve" class="text-emerald-400 text-[11px]">48 ms</span>
+            <span id="lat-retrieve" class="text-slate-500 text-[11px]">--</span>
           </div>
 
           <div class="flex items-center justify-between py-1 border-b border-white/[0.04] text-slate-300">
             <span class="text-slate-400">inspect_repo</span>
-            <span id="lat-inspect" class="text-emerald-400 text-[11px]">31 ms</span>
+            <span id="lat-inspect" class="text-slate-500 text-[11px]">--</span>
           </div>
 
           <div class="flex items-center justify-between py-1 border-b border-white/[0.04] text-slate-300">
             <span class="text-slate-400">propose_patch</span>
-            <span id="lat-patch" class="text-emerald-400 text-[11px]">6.2 s</span>
+            <span id="lat-patch" class="text-slate-500 text-[11px]">--</span>
           </div>
 
           <div class="flex items-center justify-between py-1 border-b border-white/[0.04] text-slate-300">
             <span class="text-slate-400">run_in_sandbox</span>
-            <span id="lat-sandbox" class="text-emerald-400 text-[11px]">1.4 s</span>
+            <span id="lat-sandbox" class="text-slate-500 text-[11px]">--</span>
           </div>
 
           <div class="flex items-center justify-between py-1 text-slate-300">
             <span class="text-slate-400">system_status</span>
-            <span id="lat-status" class="text-emerald-400 text-[11px]">12 ms</span>
+            <span id="lat-status" class="text-slate-500 text-[11px]">--</span>
           </div>
 
         </div>
@@ -345,10 +322,7 @@
         </div>
 
         <div id="sandbox-audit-stream" class="flex flex-col gap-1.5 font-mono text-[11px] text-emerald-400/90 max-h-56 overflow-y-auto pr-1">
-          <div>req-7a1f python allow</div>
-          <div>req-7a22 pytest allow</div>
-          <div>req-7a25 inspect allow</div>
-          <div>req-7a28 path_check allow</div>
+          <div class="text-slate-500 font-mono text-[10.5px]">Awaiting telemetry stream...</div>
         </div>
       </div>
 

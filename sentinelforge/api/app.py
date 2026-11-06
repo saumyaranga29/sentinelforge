@@ -83,10 +83,55 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
+    # 4. Sample Refund Module (Demonstrates policy enforcement workflow)
+    sample_refund = settings.workspace_root / "refunds.py"
+    if not sample_refund.exists():
+        sample_refund.write_text(
+            '"""Refund Processing Service."""\n\n'
+            "def calculate_refund(days_since_purchase: int, amount: float) -> float:\n"
+            '    """Calculates refund amount based on purchase date and company policy."""\n'
+            "    # Legacy behavior: returns full refund without cutoff check\n"
+            "    return float(amount)\n",
+            encoding="utf-8",
+        )
+
+    # 5. Sample Refund Unit Tests
+    sample_refund_test = settings.workspace_root / "test_refunds.py"
+    if not sample_refund_test.exists():
+        sample_refund_test.write_text(
+            "import unittest\n"
+            "from refunds import calculate_refund\n\n"
+            "class TestRefundPolicy(unittest.TestCase):\n"
+            "    def test_recent_purchase_refund(self):\n"
+            "        self.assertEqual(calculate_refund(10, 150.0), 150.0)\n\n"
+            "    def test_reject_refund_older_than_30_days(self):\n"
+            "        self.assertEqual(calculate_refund(35, 150.0), 0.0)\n\n"
+            "if __name__ == '__main__':\n"
+            "    unittest.main()\n",
+            encoding="utf-8",
+        )
+
+    # 6. Sample Refund Policy Document
+    sample_policy_doc = docs_dir / "refund_policy.md"
+    if not sample_policy_doc.exists():
+        sample_policy_doc.write_text(
+            "# Enterprise Refund Policy Specification\n\n"
+            "## Scope & Terms\n"
+            "This policy governs all consumer transaction refund calculations across services.\n\n"
+            "## Eligibility Expiration Rule\n"
+            "Refund requests must be initiated within thirty (30) calendar days of purchase.\n"
+            "Any refund requested after 30 days must be strictly rejected with an approved amount of 0.0.\n\n"
+            "## Verification\n"
+            "All refund logic must be verified by automated regression test suites.\n",
+            encoding="utf-8",
+        )
+
     # Automatically index sample docs and code into local RAG
     try:
         vector_store.ingest_file(sample_calc)
         vector_store.ingest_file(sample_doc)
+        vector_store.ingest_file(sample_refund)
+        vector_store.ingest_file(sample_policy_doc)
         logger.info("Successfully bootstrapped and indexed sample repository and documents.")
     except Exception as e:
         logger.warning(f"Error indexing sample documents during bootstrap: {e}")

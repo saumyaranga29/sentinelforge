@@ -21,6 +21,10 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-bake FastEmbed ONNX weights during build for instant 100% offline cold-starts
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='BAAI/bge-small-en-v1.5', cache_dir='/tmp/fastembed_cache')" && \
+    chmod -R 777 /tmp/fastembed_cache
+
 # Copy project files
 COPY pyproject.toml .env.example README.md AI_USAGE.md ./
 COPY sentinelforge/ ./sentinelforge/

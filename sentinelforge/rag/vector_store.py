@@ -312,9 +312,18 @@ class LocalVectorStore:
     def get_stats(self) -> Dict[str, Any]:
         """Returns indexed document statistics."""
         count = self._collection.count() if self._collection is not None else len(self._in_memory_docs)
+        files_summary = []
+        for file_path_str, fhash in self._hash_registry.items():
+            p = Path(file_path_str)
+            files_summary.append({
+                "name": p.name,
+                "path": str(p),
+                "hash": fhash[:8] if fhash else "indexed",
+            })
         return {
             "total_chunks": count,
             "indexed_files": list(self._hash_registry.keys()),
+            "files": files_summary,
             "storage_path": str(self.persist_dir),
             "engine": "ChromaDB" if self._collection is not None else "InMemoryFallback",
         }
