@@ -37,6 +37,11 @@ class AgentExecutionReport(BaseModel):
     self_critique: str = ""
     risk_notes: List[str] = Field(default_factory=list)
     status: str = "PENDING_APPROVAL"
+    can_approve: bool = True
+    regression_detected: bool = False
+    baseline_passed: bool = True
+    newly_failing_tests: List[str] = Field(default_factory=list)
+    dropped_symbols: List[str] = Field(default_factory=list)
 
 
 class AgentOrchestrator:
@@ -150,8 +155,18 @@ class AgentOrchestrator:
         # Fail-safe: Original repository is NEVER directly mutated during testing.
         sandbox_executed = False
         sandbox_success = False
-        test_summary: Dict[str, Any] = {}
+        baseline_success = False
+        baseline_output = ""
+        newly_failing_tests: List[str] = []
         raw_test_output = ""
+        test_summary: Dict[str, Any] = {}
+
+        dropped_symbols = patch_res.get("dropped_symbols", [])
+        effective_modified_content = patch_res.get("modified_content", modified_content)
+
+        def parse_test_failures(output: str) -> List[str]:
+            import re
+            return re.findall(r"(?:FAIL|ERROR):\s+([a-zA-Z0-9_\.]+)", output)
 
         with tempfile.TemporaryDirectory() as scratch_dir:
             scratch_path = Path(scratch_dir)
@@ -167,16 +182,10 @@ class AgentOrchestrator:
                     else:
                         shutil.copy2(item, dest)
 
-            # Apply proposed patch inside scratch directory
-            staged_file = scratch_path / resolved_target
-            staged_file.parent.mkdir(parents=True, exist_ok=True)
-            staged_file.write_text(modified_content, encoding="utf-8")
-
-            # Execute matching test file for resolved_target
+            # Set up matching test file for resolved_target
             target_stem = Path(resolved_target).stem
             test_pattern = f"test_{target_stem}.py"
 
-            # If resolved_target is calculator and task asks divide(1, 0) to return 0, inject that test:
             if resolved_target == "calculator.py" and ("return 0" in task.lower() or "returns 0" in task.lower()):
                 test_file = scratch_path / "test_calculator.py"
                 test_file.write_text(
@@ -208,14 +217,32 @@ class AgentOrchestrator:
                     encoding="utf-8",
                 )
 
-            # Check if matching test file exists, else fallback to discover all
             matching_test = scratch_path / test_pattern
             if matching_test.exists():
                 test_args = ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", test_pattern]
             else:
                 test_args = ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", "test_*.py"]
 
-            # Execute tests inside sandbox via MCP execute_in_sandbox tool
+            # 1. Baseline Test Execution (Before applying the patch)
+            baseline_res = mcp_dispatcher.call_tool(
+                "execute_in_sandbox",
+                {
+                    "command": "python",
+                    "args": test_args,
+                    "timeout_seconds": 12,
+                    "language": "python",
+                },
+            )
+            baseline_success = baseline_res.get("success", False)
+            baseline_output = f"{baseline_res.get('stdout', '')}\n{baseline_res.get('stderr', '')}".strip()
+            baseline_failures = set(parse_test_failures(baseline_output))
+
+            # 2. Apply proposed patch inside scratch directory (using full modified content)
+            staged_file = scratch_path / resolved_target
+            staged_file.parent.mkdir(parents=True, exist_ok=True)
+            staged_file.write_text(effective_modified_content, encoding="utf-8")
+
+            # 3. Post-Patch Test Execution (After applying the patch)
             sandbox_res = mcp_dispatcher.call_tool(
                 "execute_in_sandbox",
                 {
@@ -229,11 +256,17 @@ class AgentOrchestrator:
             sandbox_executed = True
             sandbox_success = sandbox_res.get("success", False)
             raw_test_output = f"{sandbox_res.get('stdout', '')}\n{sandbox_res.get('stderr', '')}".strip()
+            post_failures = set(parse_test_failures(raw_test_output))
+            newly_failing_tests = sorted(list(post_failures - baseline_failures))
+
             test_summary = {
                 "exit_code": sandbox_res.get("exit_code"),
                 "duration_ms": sandbox_res.get("duration_ms"),
                 "timed_out": sandbox_res.get("timed_out", False),
                 "output": raw_test_output,
+                "baseline_passed": baseline_success,
+                "baseline_output": baseline_output,
+                "newly_failing_tests": newly_failing_tests,
             }
 
         # --- Stage 6: Self-Critique ---
@@ -243,14 +276,26 @@ class AgentOrchestrator:
         )
         self_critique = self.llm.generate(AGENT_SYSTEM_PROMPT, critique_prompt)
 
-        # --- Stage 7: Final Report ---
+        # --- Stage 7: Final Report & Approval Gate Evaluation ---
+        # Verification requirements:
+        # 1. Tests must pass in scratch sandbox
+        # 2. No newly failing tests (regressions) against baseline
+        # 3. No unauthorized dropped public symbols (AST check)
+        regression_detected = (not sandbox_success) or bool(newly_failing_tests) or bool(dropped_symbols)
+        can_approve = sandbox_success and (len(newly_failing_tests) == 0) and (len(dropped_symbols) == 0)
+
         risk_notes = [
             "Diff is held in PENDING_APPROVAL status. No repository changes applied yet.",
-            f"Sandbox verification: {'PASSED' if sandbox_success else 'FAILED / INCOMPLETE'}.",
+            f"Baseline tests (pre-patch): {'PASSED' if baseline_success else 'FAILED / UNVERIFIED'}.",
+            f"Sandbox verification (post-patch): {'PASSED' if sandbox_success else 'FAILED / REGRESSION'}.",
         ]
 
-        if not sandbox_success:
-            risk_notes.append("WARNING: Tests failed or did not exit cleanly. Human inspection required.")
+        if newly_failing_tests:
+            risk_notes.append(f"REGRESSION DETECTED: Newly failing tests: {', '.join(newly_failing_tests)}.")
+        if dropped_symbols:
+            risk_notes.append(f"AST INTEGRITY VIOLATION: Public functions dropped without instruction: {', '.join(dropped_symbols)}.")
+        if not can_approve:
+            risk_notes.append("APPROVAL GATE BLOCKED: Automated approval is disabled due to sandbox test failure or symbol regression.")
 
         report = AgentExecutionReport(
             task=task,
@@ -267,6 +312,11 @@ class AgentOrchestrator:
             self_critique=self_critique,
             risk_notes=risk_notes,
             status="PENDING_APPROVAL",
+            can_approve=can_approve,
+            regression_detected=regression_detected,
+            baseline_passed=baseline_success,
+            newly_failing_tests=newly_failing_tests,
+            dropped_symbols=dropped_symbols,
         )
 
         audit_logger.record_event(

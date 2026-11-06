@@ -54,4 +54,14 @@ def test_agent_run_endpoint(client):
     assert data["stage_reached"] == "Stage 7: Final Report"
     assert data["status"] == "PENDING_APPROVAL"
     assert data["sandbox_executed"] is True
+    assert "can_approve" in data
+    assert "regression_detected" in data
+    assert "dropped_symbols" in data
+
+
+def test_agent_patch_revert_endpoint(client):
+    """Verifies patch revert endpoint."""
+    res = client.post("/api/agent/patch/revert", json={"target_file": "nonexistent_file_xyz.py"})
+    assert res.status_code in [404, 400]
+
 

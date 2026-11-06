@@ -89,3 +89,75 @@ def test_human_rejection_preserves_repo(test_diff_engine, temp_workspace):
     assert proposal.status == "REJECTED"
     assert calc_path.read_text(encoding="utf-8") == orig_content
 
+
+def test_broken_patch_blocks_approval(temp_workspace):
+    """
+    Regression Test: Verifies that when a patch causes test regressions in the sandbox,
+    automated approval is strictly BLOCKED (can_approve=False, regression_detected=True).
+    """
+    orchestrator = AgentOrchestrator(
+        workspace_root=temp_workspace,
+        llm_provider=MockLLMProvider(),
+    )
+
+    # Intentionally broken implementation: returns incorrect math for add()
+    broken_code = "def add(a, b):\n    return a - b - 999\n\ndef divide(a, b):\n    return a / b\n"
+
+    report = orchestrator.run(
+        task="Update calculator math",
+        target_file="calculator.py",
+        code_override=broken_code,
+    )
+
+    # Invariant: Approval must be blocked!
+    assert report.can_approve is False
+    assert report.regression_detected is True
+    assert report.sandbox_success is False
+    assert any("APPROVAL GATE BLOCKED" in note for note in report.risk_notes)
+
+
+def test_ast_symbol_check_preserves_public_functions(test_diff_engine, temp_workspace):
+    """
+    AST Symbol Integrity: Asserts that generator returning only a single function
+    body does NOT drop other public symbols (surgical splice preserves add, subtract, etc.).
+    """
+    calc_path = temp_workspace / "calculator.py"
+    orig_content = "def add(a, b):\n    return a + b\n\ndef multiply(a, b):\n    return a * b\n"
+    calc_path.write_text(orig_content, encoding="utf-8")
+
+    # Naked function returned by LLM
+    naked_function = "def add(a, b):\n    return a + b + 0\n"
+
+    proposal = test_diff_engine.create_patch(
+        target_file="calculator.py",
+        original_content=orig_content,
+        modified_content=naked_function,
+        rationale="Update add",
+    )
+
+    # AST should surgically merge: multiply should NOT be dropped!
+    assert "def multiply" in proposal.modified_content
+    assert "def add" in proposal.modified_content
+    assert proposal.dropped_symbols == []
+
+
+def test_revert_patch_restores_backup(test_diff_engine, temp_workspace):
+    """Verifies that revert_patch restores repository file from .bak backup."""
+    calc_path = temp_workspace / "calculator.py"
+    orig_content = calc_path.read_text(encoding="utf-8")
+
+    # Apply a patch
+    proposal = test_diff_engine.create_patch(
+        target_file="calculator.py",
+        original_content=orig_content,
+        modified_content=orig_content + "\n# Merged feature\n",
+        rationale="Test feature",
+    )
+    test_diff_engine.apply_patch(proposal.patch_id, approved=True)
+    assert "# Merged feature" in calc_path.read_text(encoding="utf-8")
+
+    # One-click revert
+    result = test_diff_engine.revert_patch("calculator.py")
+    assert result["status"] == "REVERTED"
+    assert calc_path.read_text(encoding="utf-8") == orig_content
+

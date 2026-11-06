@@ -21,6 +21,10 @@ class PatchApprovalRequest(BaseModel):
     approved: bool = Field(..., description="True to apply unified diff, False to reject")
 
 
+class PatchRevertRequest(BaseModel):
+    target_file: Optional[str] = Field(default=None, description="Optional target file to revert to .bak backup")
+
+
 @router.post("/run", response_model=AgentExecutionReport)
 async def run_agent(req: AgentRunRequest):
     """
@@ -60,6 +64,21 @@ async def approve_patch(req: PatchApprovalRequest):
             "status": "APPLIED" if applied else "REJECTED",
             "message": "Patch applied successfully to workspace." if applied else "Patch rejected by user.",
         }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.post("/patch/revert")
+async def revert_patch(req: PatchRevertRequest = PatchRevertRequest()):
+    """
+    Reverts a modified file back to its pre-patch safety backup (.bak).
+    Enforces the one-click rollback guarantee.
+    """
+    try:
+        result = diff_engine.revert_patch(target_file=req.target_file)
+        return result
+    except FileNotFoundError as fnf:
+        raise HTTPException(status_code=404, detail=str(fnf))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

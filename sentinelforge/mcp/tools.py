@@ -128,6 +128,8 @@ def tool_propose_patch(
         "target_file": proposal.target_file,
         "unified_diff": proposal.unified_diff,
         "rationale": proposal.rationale,
+        "dropped_symbols": proposal.dropped_symbols,
+        "modified_content": proposal.modified_content,
     }
 
 

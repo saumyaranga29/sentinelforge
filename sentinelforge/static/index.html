@@ -235,6 +235,17 @@
             <pre id="sandbox-output" class="text-[11px] text-slate-400 whitespace-pre-wrap max-h-24 overflow-y-auto mt-1 font-mono">// Test runner output will stream here during sandbox execution</pre>
           </div>
 
+          <!-- Regression / Failure Banner -->
+          <div id="regression-warning-banner" class="hidden p-3 rounded-lg bg-rose-950/40 border border-rose-500/50 flex flex-col gap-1.5 transition-all animate-fadeIn">
+            <div class="flex items-center gap-2 text-rose-400 font-semibold text-xs font-mono">
+              <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <span>⚠️ SANDBOX REGRESSION DETECTED · VERIFICATION FAILED</span>
+            </div>
+            <div id="regression-details" class="text-[11px] text-rose-300 font-mono leading-relaxed pl-4">
+              Tests failed in the isolated sandbox. Automated approval is blocked to protect repository integrity.
+            </div>
+          </div>
+
           <!-- Approval Result Banner -->
           <div id="approval-result-banner" class="hidden p-4 rounded-lg flex flex-col gap-2.5 transition-all animate-fadeIn"></div>
 
@@ -247,11 +258,11 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-white">Explicit Human Approval Required</p>
-                <p class="text-[10.5px] text-slate-400">Zero silent mutation. Changes will only apply upon your consent.</p>
+                <p id="decision-dock-title" class="text-xs font-semibold text-white">Explicit Human Approval Required</p>
+                <p id="decision-dock-subtitle" class="text-[10.5px] text-slate-400">Zero silent mutation. Changes will only apply upon your consent.</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div id="decision-dock-buttons" class="flex items-center gap-2">
               <button id="btn-reject-patch" class="px-3.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-medium transition-all">
                 Reject Patch
               </button>
@@ -342,6 +353,6 @@
   </main>
 
   <!-- Interactive JavaScript Engine -->
-  <script src="/static/app.js?v=2.1"></script>
+  <script src="/static/app.js?v=2.3"></script>
 </body>
 </html>

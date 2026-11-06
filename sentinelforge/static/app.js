@@ -35,6 +35,11 @@ const API = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ patch_id, approved })
   }).then(r => r.json()),
+  agentRevertPatch: (target_file = null) => fetch('/api/agent/patch/revert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target_file })
+  }).then(r => r.json()),
   auditLogs: (limit = 20) => fetch(`/api/audit/logs?limit=${limit}`).then(r => r.json())
 };
 
@@ -526,6 +531,61 @@ function renderAgentReport(report) {
         `OK (isolated workspace sandbox verification clean)`;
     }
   }
+
+  // 5. Verification Gate & Regression Warning Banner
+  const regBanner = document.getElementById('regression-warning-banner');
+  const regDetails = document.getElementById('regression-details');
+  const canApprove = (report.can_approve !== false) && (report.sandbox_success !== false) &&
+    (!report.newly_failing_tests || report.newly_failing_tests.length === 0) &&
+    (!report.dropped_symbols || report.dropped_symbols.length === 0);
+
+  if (regBanner) {
+    if (!canApprove || report.regression_detected) {
+      const issues = [];
+      if (report.newly_failing_tests && report.newly_failing_tests.length > 0) {
+        issues.push(`Newly failing tests: ${report.newly_failing_tests.join(', ')}`);
+      } else if (!testPassed) {
+        issues.push('Test suite failed in the sandbox copy.');
+      }
+      if (report.dropped_symbols && report.dropped_symbols.length > 0) {
+        issues.push(`AST symbol check violation: public functions dropped (${report.dropped_symbols.join(', ')})`);
+      }
+      if (regDetails) {
+        regDetails.innerHTML = issues.join('<br>') || 'Sandbox tests failed. Automated approval is blocked.';
+      }
+      regBanner.classList.remove('hidden');
+    } else {
+      regBanner.classList.add('hidden');
+    }
+  }
+
+  // 6. Update Approval Gate Dock Buttons
+  const decisionDockButtons = document.getElementById('decision-dock-buttons');
+  if (decisionDockButtons) {
+    if (!canApprove) {
+      decisionDockButtons.innerHTML = `
+        <button id="btn-reject-patch" class="px-3.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-medium transition-all">
+          Reject Patch
+        </button>
+        <button id="btn-approve-disabled" disabled class="px-3.5 py-1.5 rounded-lg bg-slate-800/80 text-slate-500 border border-slate-700/50 text-xs font-semibold cursor-not-allowed">
+          ✕ Approval Blocked (Failing Tests)
+        </button>
+        <button id="btn-approve-override" class="px-3.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 text-xs font-semibold transition-all">
+          ⚠️ Approve anyway
+        </button>
+      `;
+    } else {
+      decisionDockButtons.innerHTML = `
+        <button id="btn-reject-patch" class="px-3.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-medium transition-all">
+          Reject Patch
+        </button>
+        <button id="btn-approve-patch" class="px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-semibold transition-all shadow-md shadow-emerald-950/50">
+          Approve & Apply Patch
+        </button>
+      `;
+    }
+    bindApprovalGateActions();
+  }
 }
 
 function getSampleDiff(targetFile) {
@@ -576,170 +636,223 @@ function getFallbackReport(task) {
   };
 }
 
-// --- 6. Approval Flow ---
+// --- 6. Approval Flow & Verification Override Gate ---
 function initApprovalButtons() {
+  bindApprovalGateActions();
+}
+
+function bindApprovalGateActions() {
   const btnApprove = document.getElementById('btn-approve-patch');
+  const btnOverride = document.getElementById('btn-approve-override');
   const btnReject = document.getElementById('btn-reject-patch');
+
+  if (btnApprove) {
+    btnApprove.onclick = async () => {
+      await handlePatchApproval(true, false);
+    };
+  }
+
+  if (btnOverride) {
+    btnOverride.onclick = async () => {
+      const confirmed = confirm(
+        "⚠️ OVERRIDE CONFIRMATION:\n\n" +
+        "Unit tests failed or public symbols were dropped in the isolated sandbox.\n\n" +
+        "Are you strictly sure you want to bypass verification and apply this patch to the repository?"
+      );
+      if (confirmed) {
+        await handlePatchApproval(true, true);
+      }
+    };
+  }
+
+  if (btnReject) {
+    btnReject.onclick = async () => {
+      await handlePatchApproval(false, false);
+    };
+  }
+}
+
+async function handlePatchApproval(approved, isOverride = false) {
   const banner = document.getElementById('approval-result-banner');
+  const regBanner = document.getElementById('regression-warning-banner');
   const statusBadge = document.getElementById('diff-status-badge');
   const decisionDock = document.getElementById('decision-dock');
   const stepApproval = document.getElementById('step-approval');
 
-  if (btnApprove) {
-    btnApprove.addEventListener('click', async () => {
-      btnApprove.disabled = true;
-      btnApprove.textContent = 'Applying...';
+  if (approved) {
+    try {
+      await API.agentApprovePatch(activePatchId, true);
+    } catch (err) {
+      console.warn('Backend approval notice:', err);
+    }
 
-      try {
-        await API.agentApprovePatch(activePatchId, true);
-      } catch (err) {
-        console.warn('Backend approval notice:', err);
-      }
+    if (regBanner) regBanner.classList.add('hidden');
 
-      // 1. Update Diff Status Badge
-      if (statusBadge) {
-        statusBadge.textContent = '✓ APPLIED & MERGED';
-        statusBadge.className = 'text-[10px] font-mono text-emerald-400 px-2.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 font-bold shadow-sm';
-      }
+    if (statusBadge) {
+      statusBadge.textContent = isOverride ? '⚠️ APPLIED (OVERRIDE)' : '✓ APPLIED & MERGED';
+      statusBadge.className = isOverride
+        ? 'text-[10px] font-mono text-amber-400 px-2.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/50 font-bold shadow-sm'
+        : 'text-[10px] font-mono text-emerald-400 px-2.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 font-bold shadow-sm';
+    }
 
-      // 2. Update Stepper Pill
-      if (stepApproval) {
-        stepApproval.textContent = '✓ Approved';
-        stepApproval.className = 'stepper-pill active';
-      }
+    if (stepApproval) {
+      stepApproval.textContent = isOverride ? '⚠️ Override' : '✓ Approved';
+      stepApproval.className = 'stepper-pill active';
+    }
 
-      // 3. Show Success Celebration Banner
-      if (banner) {
-        banner.className = 'p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 flex items-start gap-3 transition-all animate-fadeIn';
-        banner.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 shadow-sm shadow-emerald-950">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-            </svg>
+    if (banner) {
+      banner.className = 'p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 flex items-start gap-3 transition-all animate-fadeIn';
+      banner.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 shadow-sm shadow-emerald-950">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="text-sm font-bold text-white">Patch Applied & Merged to Repository!</h4>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700/60 font-semibold">
+              ZERO SILENT MUTATION
+            </span>
           </div>
-          <div class="flex-1">
-            <div class="flex items-center gap-2">
-              <h4 class="text-sm font-bold text-white">Patch Applied & Merged to Repository!</h4>
-              <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700/60 font-semibold">
-                ZERO SILENT MUTATION
-              </span>
-            </div>
-            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-              The changes have been written to <strong class="text-emerald-300 font-mono font-semibold">${escapeHtml(activeTargetFile)}</strong> on disk. A safety rollback backup was automatically preserved as <strong class="text-slate-400 font-mono">${escapeHtml(activeTargetFile)}.bak</strong>.
-            </p>
-            <div class="flex items-center gap-2.5 mt-3">
-              <button id="btn-view-disk-file" class="text-xs font-mono px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-all flex items-center gap-1.5">
-                <span>📄 View ${escapeHtml(activeTargetFile)} on Disk</span>
-              </button>
-              <button id="btn-reset-new-task" class="text-xs font-mono px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.1] transition-all">
-                🔄 Start Another Task
-              </button>
-            </div>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+            The changes have been written to <strong class="text-emerald-300 font-mono font-semibold">${escapeHtml(activeTargetFile)}</strong> on disk. A safety rollback backup was automatically preserved as <strong class="text-slate-400 font-mono">${escapeHtml(activeTargetFile)}.bak</strong>.
+          </p>
+          <div class="flex items-center gap-2.5 mt-3 flex-wrap">
+            <button id="btn-view-disk-file" class="text-xs font-mono px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition-all flex items-center gap-1.5">
+              <span>📄 View ${escapeHtml(activeTargetFile)} on Disk</span>
+            </button>
+            <button id="btn-revert-backup" class="text-xs font-mono px-3 py-1.5 rounded-md bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 transition-all flex items-center gap-1.5">
+              <span>↩ Revert to Backup</span>
+            </button>
+            <button id="btn-reset-new-task" class="text-xs font-mono px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.1] transition-all">
+              🔄 Start Another Task
+            </button>
           </div>
-        `;
-        banner.classList.remove('hidden');
+        </div>
+      `;
+      banner.classList.remove('hidden');
 
-        // Wire View on Disk Button
-        const btnViewDisk = document.getElementById('btn-view-disk-file');
-        if (btnViewDisk) {
-          btnViewDisk.addEventListener('click', async () => {
+      // Wire View on Disk
+      const btnViewDisk = document.getElementById('btn-view-disk-file');
+      if (btnViewDisk) {
+        btnViewDisk.addEventListener('click', async () => {
+          await viewLiveFileOnDisk(activeTargetFile);
+        });
+      }
+
+      // Wire One-Click Restore / Revert Button
+      const btnRevert = document.getElementById('btn-revert-backup');
+      if (btnRevert) {
+        btnRevert.addEventListener('click', async () => {
+          btnRevert.disabled = true;
+          btnRevert.textContent = 'Reverting...';
+          try {
+            const revRes = await API.agentRevertPatch(activeTargetFile);
+            appendAuditLog(`patch_revert RESTORED [${activeTargetFile}]`);
             await viewLiveFileOnDisk(activeTargetFile);
-          });
-        }
-
-        // Wire Reset Task Button
-        const btnReset = document.getElementById('btn-reset-new-task');
-        if (btnReset) {
-          btnReset.addEventListener('click', () => {
-            document.getElementById('viewport-active').classList.add('hidden');
-            document.getElementById('viewport-idle').classList.remove('hidden');
-            document.getElementById('agent-task-input').value = '';
-            document.getElementById('agent-task-input').focus();
-            resetStepper();
-          });
-        }
+            if (statusBadge) {
+              statusBadge.textContent = '↩ REVERTED TO BACKUP';
+              statusBadge.className = 'text-[10px] font-mono text-cyan-400 px-2.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/50 font-bold shadow-sm';
+            }
+            btnRevert.textContent = '✓ Reverted to Backup';
+            btnRevert.className = 'text-xs font-mono px-3 py-1.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed';
+            alert(revRes.message || `Successfully reverted ${activeTargetFile} to pre-patch safety backup.`);
+          } catch (err) {
+            alert(`Revert failed: ${err.message}`);
+            btnRevert.disabled = false;
+            btnRevert.textContent = '↩ Revert to Backup';
+          }
+        });
       }
 
-      // 4. Update Decision Dock
-      if (decisionDock) {
-        decisionDock.innerHTML = `
-          <div class="flex items-center gap-2 text-xs font-mono text-emerald-300">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>Status: Patch successfully approved by human operator. Repository updated.</span>
+      // Wire Reset Task
+      const btnReset = document.getElementById('btn-reset-new-task');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => {
+          document.getElementById('viewport-active').classList.add('hidden');
+          document.getElementById('viewport-idle').classList.remove('hidden');
+          document.getElementById('agent-task-input').value = '';
+          document.getElementById('agent-task-input').focus();
+          resetStepper();
+        });
+      }
+    }
+
+    if (decisionDock) {
+      decisionDock.innerHTML = `
+        <div class="flex items-center gap-2 text-xs font-mono text-emerald-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Status: Patch successfully ${isOverride ? 'applied via human override' : 'approved by human operator'}. Repository updated.</span>
+        </div>
+      `;
+    }
+
+    appendAuditLog(`patch_approve APPLIED [${activeTargetFile}]`);
+  } else {
+    // Rejected by user
+    try {
+      await API.agentApprovePatch(activePatchId, false);
+    } catch (err) {
+      console.warn('Backend rejection notice:', err);
+    }
+
+    if (regBanner) regBanner.classList.add('hidden');
+
+    if (statusBadge) {
+      statusBadge.textContent = '✕ REJECTED BY USER';
+      statusBadge.className = 'text-[10px] font-mono text-rose-400 px-2.5 py-0.5 rounded bg-rose-950/80 border border-rose-500/50 font-bold';
+    }
+
+    if (stepApproval) {
+      stepApproval.textContent = '✕ Rejected';
+      stepApproval.className = 'stepper-pill completed';
+    }
+
+    if (banner) {
+      banner.className = 'p-4 rounded-lg bg-rose-950/30 border border-rose-800/40 flex items-start gap-3 transition-all animate-fadeIn';
+      banner.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-sm font-bold text-white">Patch Rejected by Human User</h4>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+            The proposed code changes were discarded. The repository was safely guarded and <strong>zero files were modified</strong>.
+          </p>
+          <div class="mt-3">
+            <button id="btn-reject-reset" class="text-xs font-mono px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.1] transition-all">
+              🔄 Try Another Task
+            </button>
           </div>
-        `;
+        </div>
+      `;
+      banner.classList.remove('hidden');
+
+      const btnReset = document.getElementById('btn-reject-reset');
+      if (btnReset) {
+        btnReset.addEventListener('click', () => {
+          document.getElementById('viewport-active').classList.add('hidden');
+          document.getElementById('viewport-idle').classList.remove('hidden');
+          document.getElementById('agent-task-input').value = '';
+          document.getElementById('agent-task-input').focus();
+          resetStepper();
+        });
       }
+    }
 
-      appendAuditLog(`patch_approve APPLIED [${activeTargetFile}]`);
-    });
-  }
+    if (decisionDock) {
+      decisionDock.innerHTML = `
+        <div class="flex items-center gap-2 text-xs font-mono text-rose-300">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+          <span>Status: Patch rejected. Repository state preserved intact.</span>
+        </div>
+      `;
+    }
 
-  if (btnReject) {
-    btnReject.addEventListener('click', async () => {
-      btnReject.disabled = true;
-      btnReject.textContent = 'Rejecting...';
-
-      try {
-        await API.agentApprovePatch(activePatchId, false);
-      } catch (err) {
-        console.warn('Backend rejection notice:', err);
-      }
-
-      if (statusBadge) {
-        statusBadge.textContent = '✕ REJECTED BY USER';
-        statusBadge.className = 'text-[10px] font-mono text-rose-400 px-2.5 py-0.5 rounded bg-rose-950/80 border border-rose-500/50 font-bold';
-      }
-
-      if (stepApproval) {
-        stepApproval.textContent = '✕ Rejected';
-        stepApproval.className = 'stepper-pill completed';
-      }
-
-      if (banner) {
-        banner.className = 'p-4 rounded-lg bg-rose-950/30 border border-rose-800/40 flex items-start gap-3 transition-all animate-fadeIn';
-        banner.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
-          <div class="flex-1">
-            <h4 class="text-sm font-bold text-white">Patch Rejected by Human User</h4>
-            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-              The proposed code changes were discarded. The repository was safely guarded and <strong>zero files were modified</strong>.
-            </p>
-            <div class="mt-3">
-              <button id="btn-reject-reset" class="text-xs font-mono px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.1] transition-all">
-                🔄 Try Another Task
-              </button>
-            </div>
-          </div>
-        `;
-        banner.classList.remove('hidden');
-
-        const btnReset = document.getElementById('btn-reject-reset');
-        if (btnReset) {
-          btnReset.addEventListener('click', () => {
-            document.getElementById('viewport-active').classList.add('hidden');
-            document.getElementById('viewport-idle').classList.remove('hidden');
-            document.getElementById('agent-task-input').value = '';
-            document.getElementById('agent-task-input').focus();
-            resetStepper();
-          });
-        }
-      }
-
-      if (decisionDock) {
-        decisionDock.innerHTML = `
-          <div class="flex items-center gap-2 text-xs font-mono text-rose-300">
-            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-            <span>Status: Patch rejected. Repository state preserved intact.</span>
-          </div>
-        `;
-      }
-
-      appendAuditLog(`patch_reject USER_REJECTED`);
-    });
+    appendAuditLog(`patch_reject USER_REJECTED`);
   }
 }
 
