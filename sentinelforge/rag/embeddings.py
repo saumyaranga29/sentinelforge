@@ -22,7 +22,13 @@ class LocalEmbeddingEngine:
     def __init__(self, model_name: Optional[str] = None):
         self.model_name = model_name or settings.embedding_model
         self._model = None
-        self._init_model()
+        self._init_attempted = False
+
+    def _get_model(self):
+        if self._model is None and not self._init_attempted:
+            self._init_attempted = True
+            self._init_model()
+        return self._model
 
     def _init_model(self) -> None:
         if TextEmbedding is not None:
@@ -45,9 +51,10 @@ class LocalEmbeddingEngine:
         if not texts:
             return []
 
-        if self._model is not None:
+        model = self._get_model()
+        if model is not None:
             try:
-                embeddings_generator = self._model.embed(texts)
+                embeddings_generator = model.embed(texts)
                 return [emb.tolist() if hasattr(emb, "tolist") else [float(x) for x in emb] for emb in embeddings_generator]
             except Exception as e:
                 logger.error(f"FastEmbed inference error: {e}. Using deterministic fallback.")
