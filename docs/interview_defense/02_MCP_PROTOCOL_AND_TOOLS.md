@@ -63,3 +63,4 @@
 ### Scenario B: "How do you expose a new MCP Resource?"
 * **File to Open**: [`sentinelforge/mcp/resources.py`](file:///c:/Users/Saumya%20Ranga/OneDrive%20-%20UPES/Desktop/Dexter/sentinelforge/mcp/resources.py)
 * **Explanation**: Show how `@mcp_app.resource("repo://audit/recent")` maps a URI scheme to a read-only data provider, enabling external clients to inspect application state over standard protocol channels.
+

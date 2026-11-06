@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelForge — AI Developer Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#151f32',
+              900: '#0f172a',
+              950: '#080d1a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <span class="text-white font-black text-lg">⚡</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg tracking-tight text-white">SentinelForge</h1>
+            <span id="header-app-version" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">v0.1.0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Privacy-First AI Developer Platform & MCP Server</p>
+        </div>
+      </div>
+
+      <!-- Real-Time Operational Badges -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green"></span>
+          <span>System Healthy</span>
+        </div>
+
+        <div id="header-privacy" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 flex items-center gap-1.5">
+          <span>🔒 100% Local / Zero Cloud Leak</span>
+        </div>
+
+        <div class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/60">
+          MODE: <span id="header-mode" class="text-cyan-400 font-bold">LOCAL</span>
+        </div>
+
+        <div class="text-xs font-mono px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/60">
+          LLM: <span id="header-provider" class="text-blue-400 font-bold">MOCK</span>
+        </div>
+
+        <div id="header-chunks" class="text-xs font-mono px-2.5 py-1 rounded-full bg-purple-950/80 text-purple-300 border border-purple-800/60">
+          0 Chunks
+        </div>
+
+        <a href="/docs" target="_blank" class="text-xs font-semibold px-3 py-1 rounded-lg bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/30 border border-cyan-500/30 transition-colors flex items-center gap-1">
+          <span>OpenAPI /docs</span>
+          <span>↗</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="border-b border-slate-800/80 bg-slate-900/50 px-6">
+    <div class="max-w-7xl mx-auto flex gap-2">
+      <button id="tab-btn-agent" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 border-cyan-500 text-cyan-400 bg-slate-800 flex items-center gap-2 transition-all">
+        <span>🤖</span>
+        <span>Agent Workspace & Patch Review</span>
+      </button>
+      <button id="tab-btn-rag" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
+        <span>📚</span>
+        <span>Local RAG & Citations</span>
+      </button>
+      <button id="tab-btn-mcp" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
+        <span>🔌</span>
+        <span>MCP Tool Explorer (7 Tools)</span>
+      </button>
+      <button id="tab-btn-audit" class="tab-btn px-4 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
+        <span>🛡</span>
+        <span>Sandbox Audit & Telemetry</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: CODING AGENT & PATCH REVIEW                       -->
+    <!-- ======================================================== -->
+    <div id="tab-pane-agent" class="space-y-6">
+      
+      <!-- Task Submission Card -->
+      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <span>⚡</span>
+            <span>Task Submission & Coding Request</span>
+          </h2>
+          <span class="text-[11px] text-slate-400">Targeting repository workspace: <code class="text-cyan-400">calculator.py</code></span>
+        </div>
+
+        <div class="space-y-2">
+          <textarea id="agent-task-input" rows="2" class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700/80 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono resize-none" placeholder="e.g. Add divide by zero validation to calculator.py and ensure tests pass"></textarea>
+          
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+              <span class="font-medium">Quick Prompts:</span>
+              <button class="quick-prompt-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono transition-colors" data-prompt="Add divide by zero validation to calculator.py and verify tests">
+                Fix divide-by-zero bug
+              </button>
+              <button class="quick-prompt-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono transition-colors" data-prompt="Add arithmetic power exponent function with safety checks">
+                Add power function
+              </button>
+              <button class="quick-prompt-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono transition-colors" data-prompt="Verify all calculator unit tests inside sandbox">
+                Run test verification
+              </button>
+            </div>
+
+            <button id="agent-run-btn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/20 flex items-center gap-2 transition-all">
+              <span>▶ Run 7-Stage Agent Loop</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 7-Stage Progress Bar -->
+        <div id="agent-stages-progress" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cognitive Loop State Machine:</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            <div id="stage-1" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>1. Analysis</span>
+            </div>
+            <div id="stage-2" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>2. Plan Gen</span>
+            </div>
+            <div id="stage-3" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>3. Retrieval</span>
+            </div>
+            <div id="stage-4" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>4. Patch Prop</span>
+            </div>
+            <div id="stage-5" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>5. Sandbox</span>
+            </div>
+            <div id="stage-6" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>6. Critique</span>
+            </div>
+            <div id="stage-7" class="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="stage-dot w-2 h-2 rounded-full bg-slate-600"></span>
+              <span>7. Report</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Results & Diff Review Split Grid -->
+      <div id="agent-results-container" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Plan, Citations & Sandbox Output (5 cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- Plan Card -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>📋</span> Generated Execution Plan
+            </h3>
+            <div id="agent-plan-output" class="text-xs text-slate-300 whitespace-pre-wrap font-sans leading-relaxed"></div>
+          </div>
+
+          <!-- Retrieved Citations Card -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>🔍</span> Cited RAG Evidence
+            </h3>
+            <div id="agent-citations-list" class="space-y-2"></div>
+          </div>
+
+          <!-- Sandbox Execution Card -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+                <span>🛡</span> Sandbox Test Verification
+              </h3>
+              <span class="text-[10px] text-slate-400">Isolated Workspace Clone</span>
+            </div>
+            <div id="agent-test-summary"></div>
+            <pre id="agent-test-logs" class="p-3 rounded-lg bg-black text-emerald-400 font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto border border-slate-800"></pre>
+          </div>
+
+          <!-- Self-Critique & Risks -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <h3 class="text-xs font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>⚖</span> Self-Critique & Safety Risk Notes
+            </h3>
+            <p id="agent-critique-output" class="text-xs text-slate-300 italic"></p>
+            <ul id="agent-risk-list" class="space-y-1.5 pt-1"></ul>
+          </div>
+        </div>
+
+        <!-- Right Column: Unified Diff Viewer & Approval Action Gate (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>📝</span> Review Proposed Unified Diff
+                </h3>
+                <p class="text-[11px] text-slate-400">Zero Silent Mutation: Diff is staged until explicit human approval</p>
+              </div>
+              <span id="patch-status-badge" class="text-xs font-bold px-2.5 py-1 rounded bg-amber-950 text-amber-400 border border-amber-800">
+                PENDING_APPROVAL
+              </span>
+            </div>
+
+            <!-- Unified Diff Box -->
+            <div class="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+              <div class="bg-slate-900/90 px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                <span>git diff -u</span>
+                <span>calculator.py</span>
+              </div>
+              <div id="agent-diff-viewer" class="py-2 max-h-96 overflow-y-auto font-mono text-xs"></div>
+            </div>
+
+            <!-- Human-in-the-Loop Approval Action Gate -->
+            <div id="patch-actions-container" class="p-4 rounded-xl bg-slate-950 border border-cyan-900/50 space-y-3">
+              <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                <span>🔒</span>
+                <span>Mandatory Human Approval Gate:</span>
+                <span class="text-slate-400 font-normal">Choose whether to apply this change to the repository.</span>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <button id="patch-approve-btn" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all">
+                  <span>✔ Approve & Apply Patch</span>
+                  <span class="text-[10px] text-emerald-200 font-normal">(creates .bak backup)</span>
+                </button>
+                <button id="patch-reject-btn" class="flex-1 py-2.5 px-4 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold text-xs flex items-center justify-center gap-2 transition-all">
+                  <span>✖ Reject Patch</span>
+                  <span class="text-[10px] text-rose-400 font-normal">(preserves repo)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: LOCAL RAG & EVIDENCE CITATIONS                    -->
+    <!-- ======================================================== -->
+    <div id="tab-pane-rag" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Ingestion & Indexed Files (5 cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- RAG Stats Header -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-400">Total Chunks Indexed</div>
+              <div id="rag-total-chunks" class="text-xl font-bold font-mono text-cyan-400">0</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400">Indexed Files</div>
+              <div id="rag-total-files" class="text-xl font-bold font-mono text-purple-400">0</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400">Vector Engine</div>
+              <span id="rag-engine-badge" class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">ChromaDB</span>
+            </div>
+          </div>
+
+          <!-- File Upload Card -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>📤</span> Ingest Document File
+            </h3>
+            <p class="text-[11px] text-slate-400">Supports PDF, Markdown (.md), Python, JS, TS, JSON, and Text.</p>
+            
+            <form id="rag-upload-form" class="space-y-3">
+              <input type="file" id="rag-file-input" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer" accept=".pdf,.md,.py,.js,.ts,.json,.txt">
+              <button type="submit" class="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors">
+                Upload & Embed Document
+              </button>
+            </form>
+          </div>
+
+          <!-- Quick Text Ingestion Card -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>📝</span> Ingest Raw Text / Notes
+            </h3>
+            <input type="text" id="rag-filename-input" placeholder="Virtual filename (e.g. security_notes.md)" class="w-full p-2 rounded bg-slate-950 border border-slate-700 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500">
+            <textarea id="rag-content-input" rows="3" placeholder="Paste documentation or specification text here..." class="w-full p-2 rounded bg-slate-950 border border-slate-700 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 resize-none"></textarea>
+            <button id="rag-ingest-text-btn" class="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors">
+              Index Content into Local Vector Store
+            </button>
+          </div>
+
+          <!-- Indexed Documents List -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+              <span>📑</span> Currently Indexed Files
+            </h3>
+            <div id="rag-files-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+          </div>
+
+        </div>
+
+        <!-- Right: Semantic Search & Citation Inspection (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>🔍</span> Semantic Search & Prompt Injection Defense
+                </h3>
+                <p class="text-[11px] text-slate-400">Pure CPU FastEmbed (BGE-Small) with Cryptographic UUID Delimiter Encapsulation</p>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <input type="text" id="rag-query-input" placeholder="Query semantic context (e.g. How is division by zero handled?)" class="flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono">
+              <button id="rag-search-btn" class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/20 transition-all flex items-center gap-1.5">
+                <span>Search</span>
+              </button>
+            </div>
+
+            <!-- Citations Output Container -->
+            <div id="rag-results-container" class="space-y-3 min-h-[300px]">
+              <div class="text-xs text-slate-500 py-12 text-center">
+                Enter a query above to retrieve grounded citations and inspect injection defense boundaries.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: MCP PROTOCOL EXPLORER                             -->
+    <!-- ======================================================== -->
+    <div id="tab-pane-mcp" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Tool Invoker (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🔌</span> MCP Tool Invocation Engine
+              </h3>
+              <p class="text-[11px] text-slate-400">Official Model Context Protocol FastMCP Server with Typed Pydantic Schemas</p>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Select MCP Tool:</label>
+                <select id="mcp-tool-select" class="w-full p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-cyan-400 font-mono focus:outline-none focus:border-cyan-500"></select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Tool Input Arguments (JSON):</label>
+                <textarea id="mcp-args-textarea" rows="5" class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500"></textarea>
+              </div>
+
+              <button id="mcp-invoke-btn" class="w-full py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/20 transition-all">
+                Dispatch Tool Call via MCP Protocol
+              </button>
+            </div>
+
+            <!-- Structured Tool Output -->
+            <div>
+              <div class="text-xs font-semibold text-slate-300 mb-1">MCP Response Output:</div>
+              <pre id="mcp-tool-output" class="p-4 rounded-xl bg-black text-cyan-400 font-mono text-xs max-h-64 overflow-y-auto border border-slate-800 leading-relaxed">Awaiting invocation...</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: MCP Resources & Prompts (5 cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📦</span> MCP Resources & Prompts
+              </h3>
+              <p class="text-[11px] text-slate-400">Read live URI resources and render reusable prompts</p>
+            </div>
+
+            <div class="space-y-2.5">
+              <div class="text-xs font-semibold text-slate-300">Registered MCP Resources:</div>
+              <div class="flex gap-2">
+                <button id="mcp-read-patch-res" class="flex-1 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-cyan-300 border border-slate-700 transition-colors">
+                  repo://workspace/active_patch
+                </button>
+                <button id="mcp-read-stats-res" class="flex-1 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-purple-300 border border-slate-700 transition-colors">
+                  rag://index/stats
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-xs font-semibold text-slate-300 mb-1">Resource Content:</div>
+              <pre id="mcp-resource-output" class="p-3 rounded-lg bg-black text-slate-300 font-mono text-xs max-h-64 overflow-y-auto border border-slate-800 whitespace-pre-wrap">Click a resource button above to read.</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: AUDIT TELEMETRY & SECURITY LOGS                   -->
+    <!-- ======================================================== -->
+    <div id="tab-pane-audit" class="hidden space-y-6">
+      
+      <!-- Security Status Bar -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-xs text-slate-400">Path Containment Jail</div>
+          <div class="text-sm font-bold text-emerald-400 mt-1 flex items-center gap-1.5">
+            <span>🛡</span> <span>Active & Enforced</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-xs text-slate-400">Command Allowlist</div>
+          <div class="text-sm font-bold text-cyan-400 mt-1 flex items-center gap-1.5">
+            <span>⚙</span> <span>python, pytest, node</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-xs text-slate-400">Output Stream Cap</div>
+          <div class="text-sm font-bold text-purple-400 mt-1 flex items-center gap-1.5">
+            <span>✂</span> <span>50,000 Bytes (50KB)</span>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-xs text-slate-400">Environment Scrubbing</div>
+          <div class="text-sm font-bold text-amber-400 mt-1 flex items-center gap-1.5">
+            <span>🔒</span> <span>Zero Secrets Leaked</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Events Table -->
+      <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>📋</span> Structured Sandbox Audit Trail
+            </h3>
+            <p class="text-[11px] text-slate-400">Append-only audit log tracking sandbox commands, path blocks, and approval events</p>
+          </div>
+          <button onclick="loadAuditTab()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition-colors">
+            ⟳ Refresh
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">Time (UTC)</th>
+                <th class="py-2.5 px-3">Event Type</th>
+                <th class="py-2.5 px-3">Severity</th>
+                <th class="py-2.5 px-3">Target / Command</th>
+                <th class="py-2.5 px-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body">
+              <tr>
+                <td colspan="5" class="py-4 text-center text-slate-500 text-xs">Loading audit events...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- App Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

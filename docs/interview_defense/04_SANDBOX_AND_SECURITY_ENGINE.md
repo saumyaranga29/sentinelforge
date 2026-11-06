@@ -46,3 +46,4 @@
 ### Scenario B: "How do you handle a runaway infinite-loop script?"
 * **File to Open**: [`sentinelforge/sandbox/runner.py`](file:///c:/Users/Saumya%20Ranga/OneDrive%20-%20UPES/Desktop/Dexter/sentinelforge/sandbox/runner.py)
 * **Explanation**: Walk through lines 75-95. Show how `subprocess.TimeoutExpired` catches the timeout, terminates the process group, sets `exit_code = -9, timed_out = True`, and logs a warning event so the agent is informed of the failure safely.
+

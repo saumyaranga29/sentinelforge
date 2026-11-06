@@ -71,3 +71,4 @@
   1. Create `HTMLDocumentParser(BaseDocumentParser)` using Python's standard `html.parser`.
   2. Map `.html` and `.htm` in `get_parser_for_file()`.
   3. Chunk by heading tags (`<h1>`, `<h2>`, `<article>`) and preserve tag line numbers.
+

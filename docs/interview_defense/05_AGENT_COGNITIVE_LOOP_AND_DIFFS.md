@@ -57,3 +57,4 @@ The Agent Orchestrator implements a deterministic 7-stage state machine enforcin
 ### Scenario B: "How do you roll back an applied patch if something goes wrong?"
 * **File to Open**: [`sentinelforge/agent/diff_engine.py`](file:///c:/Users/Saumya%20Ranga/OneDrive%20-%20UPES/Desktop/Dexter/sentinelforge/agent/diff_engine.py)
 * **Explanation**: Show lines 88-92 where `target_path.with_suffix(target_path.suffix + '.bak')` is written before modifying the target file. To restore, simply overwrite the target file with the `.bak` backup.
+

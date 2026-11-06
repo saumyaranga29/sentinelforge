@@ -4,7 +4,8 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from sentinelforge.api.middleware import RequestContextMiddleware
 from sentinelforge.api.routes_rag import router as rag_router
@@ -127,6 +128,19 @@ def create_app() -> FastAPI:
     app.include_router(rag_router)
     app.include_router(mcp_router)
     app.include_router(agent_router)
+
+    # Static UI Files & Frontend Dashboard
+    static_dir = Path(__file__).parent.parent / "static"
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+    @app.get("/", include_in_schema=False)
+    async def serve_dashboard():
+        """Serves the SentinelForge Single Page Application dashboard."""
+        index_file = static_dir / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        return {"message": "SentinelForge API is running. UI not found."}
 
     # Root & Health Endpoints
     @app.get("/health", tags=["Health"])

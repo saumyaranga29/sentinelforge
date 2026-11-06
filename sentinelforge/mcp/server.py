@@ -14,16 +14,21 @@ from sentinelforge.utils.logging import get_logger
 
 logger = get_logger("sentinelforge.mcp.server")
 
-# Try importing official FastMCP
+# Initialize Official MCP Server (supports official mcp 2.x and 1.x)
 try:
-    from mcp.server.fastmcp import FastMCP
+    try:
+        from mcp.server.mcpserver import MCPServer as FastMCP
+    except ImportError:
+        from mcp.server.fastmcp import FastMCP
+
     mcp_app = FastMCP(
         name="SentinelForge-MCP",
         description="Official Model Context Protocol server for SentinelForge platform",
     )
-except ImportError:
+    logger.info("Official MCP Server initialized successfully.")
+except Exception as e:
     mcp_app = None
-    logger.warning("mcp SDK not installed in global python. Initializing fallback protocol dispatcher.")
+    logger.warning(f"Official MCP Server initialization notice: {e}. Using standard protocol dispatcher.")
 
 
 # Register Tools on FastMCP if available

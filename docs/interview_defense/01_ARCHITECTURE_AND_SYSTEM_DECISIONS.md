@@ -49,3 +49,4 @@
 ### Scenario B: "How do you prove that no secrets are leaking in logs?"
 * **File to Open**: [`sentinelforge/utils/logging.py`](file:///c:/Users/Saumya%20Ranga/OneDrive%20-%20UPES/Desktop/Dexter/sentinelforge/utils/logging.py) and [`sentinelforge/sandbox/runner.py`](file:///c:/Users/Saumya%20Ranga/OneDrive%20-%20UPES/Desktop/Dexter/sentinelforge/sandbox/runner.py)
 * **Explanation**: Walk through `_get_scrubbed_env()`. Show how `os.environ` is scrubbed down to a whitelist of safe system variables, stripping any `*_API_KEY`, `TOKEN`, or cloud credentials before any command is executed.
+
