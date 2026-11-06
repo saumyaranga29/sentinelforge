@@ -47,11 +47,15 @@ class SandboxSecurityValidator:
         """
         real_workspace = os.path.realpath(str(workspace_root))
 
+        # Normalize path separators for cross-platform traversal defense (e.g. Windows \\ on Linux)
+        cand_str = str(candidate_path).replace("\\", "/")
+        norm_cand_path = Path(cand_str)
+
         # If candidate_path is relative, resolve relative to real_workspace
-        if not candidate_path.is_absolute():
-            real_candidate = os.path.realpath(os.path.join(real_workspace, str(candidate_path)))
+        if not norm_cand_path.is_absolute():
+            real_candidate = os.path.realpath(os.path.join(real_workspace, cand_str))
         else:
-            real_candidate = os.path.realpath(str(candidate_path))
+            real_candidate = os.path.realpath(str(norm_cand_path))
 
         norm_workspace = os.path.normcase(real_workspace)
         norm_candidate = os.path.normcase(real_candidate)
