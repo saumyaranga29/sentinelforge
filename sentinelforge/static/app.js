@@ -912,7 +912,10 @@ async function fetchAuditLogs() {
         const id = e.request_id ? e.request_id.slice(-4) : Math.random().toString(16).slice(2, 6);
         const action = e.event_type ? e.event_type.toLowerCase() : 'event';
         const target = e.command ? e.command.split(' ')[0] : (e.target_path ? e.target_path.split(/[/\\]/).pop() : 'sandbox');
-        const status = e.success ? 'allow' : 'blocked';
+        let status = e.success ? 'allow' : 'blocked';
+        if (!e.success && e.details && e.details.exit_code !== undefined && e.details.exit_code !== 0) {
+          status = `fail (exit ${e.details.exit_code})`;
+        }
         div.textContent = `req-${id} ${action} [${target}] ${status}`;
         div.className = e.success ? 'text-slate-300' : 'text-rose-400 font-semibold';
         stream.appendChild(div);
