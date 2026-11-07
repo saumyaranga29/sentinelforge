@@ -173,7 +173,14 @@ def create_app() -> FastAPI:
         """Serves the SentinelForge Single Page Application dashboard."""
         index_file = static_dir / "index.html"
         if index_file.exists():
-            return FileResponse(index_file)
+            return FileResponse(
+                index_file,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                },
+            )
         return {"message": "SentinelForge API is running. UI not found."}
 
     @app.get("/health", tags=["Health"])
