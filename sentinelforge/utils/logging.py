@@ -5,7 +5,6 @@ import contextvars
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-# Context variable to track request ID across async tasks
 request_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("request_id", default=None)
 
 
@@ -21,7 +20,6 @@ class JSONFormatter(logging.Formatter):
             "request_id": request_id_ctx.get(),
         }
 
-        # Include extra attributes if passed
         if hasattr(record, "extra") and isinstance(record.extra, dict):
             log_obj.update(record.extra)
 
@@ -36,7 +34,6 @@ def setup_logging(level: str = "INFO") -> None:
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
 
-    # Avoid duplicate handlers
     if not root_logger.handlers:
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(JSONFormatter())

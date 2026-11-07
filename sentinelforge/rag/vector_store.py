@@ -45,11 +45,9 @@ class LocalVectorStore:
         self.persist_dir.mkdir(parents=True, exist_ok=True)
         self.embedder = LocalEmbeddingEngine()
 
-        # In-memory document & hash registry
         self._hash_registry_file = self.persist_dir / "hash_registry.json"
         self._hash_registry: Dict[str, str] = self._load_hash_registry()
 
-        # ChromaDB setup or fallback in-memory store
         self._client = None
         self._collection = None
         self._in_memory_docs: List[DocumentChunk] = []
@@ -100,11 +98,9 @@ class LocalVectorStore:
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        # Compute whole-file SHA-256 for duplicate check
         with open(file_path, "rb") as f:
             file_hash = hashlib.sha256(f.read()).hexdigest()
 
-        # Check if identical file content was already indexed
         if self._hash_registry.get(str(file_path)) == file_hash:
             logger.info(f"Duplicate file detected: {file_path.name}. Skipping redundant re-indexing.")
             return {
@@ -115,7 +111,6 @@ class LocalVectorStore:
                 "chunks_indexed": 0,
             }
 
-        # Delete previous version of this file if re-indexing
         self.delete_by_source(file_path.name)
 
         parser = get_parser_for_file(file_path)
@@ -127,7 +122,6 @@ class LocalVectorStore:
         texts = [c.content for c in chunks]
         embeddings = self.embedder.embed_texts(texts)
 
-        # Store in ChromaDB or in-memory
         if self._collection is not None:
             ids = [c.chunk_id for c in chunks]
             metadatas = [
@@ -152,7 +146,6 @@ class LocalVectorStore:
             self._in_memory_docs.extend(chunks)
             self._in_memory_vectors.extend(embeddings)
 
-        # Update registry
         self._hash_registry[str(file_path)] = file_hash
         self._save_hash_registry()
 
@@ -193,7 +186,6 @@ class LocalVectorStore:
             self._in_memory_docs = new_docs
             self._in_memory_vectors = new_vecs
 
-        # Remove from hash registry
         for key in list(self._hash_registry.keys()):
             if Path(key).name == source_file:
                 del self._hash_registry[key]
@@ -231,7 +223,6 @@ class LocalVectorStore:
                     distance = results["distances"][0][i] if results.get("distances") else 0.5
                     similarity = max(0.0, 1.0 - distance)
 
-                    # Build reference string
                     source_file = meta.get("source_file", "unknown")
                     page_num = meta.get("page_number") if meta.get("page_number", -1) != -1 else None
                     l_start = meta.get("line_start") if meta.get("line_start", -1) != -1 else None
@@ -244,7 +235,6 @@ class LocalVectorStore:
                         ref_parts.append(f"lines {l_start}-{l_end}")
                     citation_ref = ", ".join(ref_parts)
 
-                    # Encapsulate and scan for prompt injection
                     encapsulated, scan = PromptInjectionGuard.encapsulate_chunk(
                         text=doc_text,
                         source_file=source_file,
@@ -265,7 +255,6 @@ class LocalVectorStore:
                         )
                     )
         elif self._in_memory_docs:
-            # Cosine similarity in memory
             import numpy as np
 
             q_arr = np.array(query_vec, dtype=np.float32)

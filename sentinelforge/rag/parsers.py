@@ -16,7 +16,7 @@ class DocumentChunk(BaseModel):
     chunk_id: str
     content: str
     source_file: str
-    source_type: str  # pdf, markdown, code, json, text
+    source_type: str
     content_hash: str
     page_number: Optional[int] = None
     section: Optional[str] = None
@@ -37,7 +37,6 @@ class PDFDocumentParser(BaseDocumentParser):
     def parse(self, file_path: Path) -> List[DocumentChunk]:
         chunks: List[DocumentChunk] = []
         if pypdf is None:
-            # Fallback if pypdf is not installed
             return chunks
 
         try:

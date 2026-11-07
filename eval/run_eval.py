@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Add project root to sys.path for direct execution
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sentinelforge.config import settings
@@ -16,7 +15,6 @@ def run_benchmark(benchmark_file: Path) -> Dict[str, Any]:
     with open(benchmark_file, "r", encoding="utf-8") as f:
         cases = json.load(f)
 
-    # Ingest sample documents into vector store
     sample_files = [
         settings.workspace_root / "calculator.py",
         settings.workspace_root / "docs" / "calculator_spec.md",

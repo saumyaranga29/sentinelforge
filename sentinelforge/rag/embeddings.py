@@ -33,7 +33,6 @@ class LocalEmbeddingEngine:
     def _init_model(self) -> None:
         if TextEmbedding is not None:
             try:
-                # Prioritize strictly offline local files
                 self._model = TextEmbedding(model_name=self.model_name, local_files_only=True)
                 logger.info(f"Loaded local FastEmbed model (offline): {self.model_name}")
             except Exception as e:
@@ -59,7 +58,6 @@ class LocalEmbeddingEngine:
             except Exception as e:
                 logger.error(f"FastEmbed inference error: {e}. Using deterministic fallback.")
 
-        # Deterministic offline fallback embedding (384-dimensional normalized vector)
         return [self._fallback_embedding(t) for t in texts]
 
     def embed_query(self, query: str) -> List[float]:
@@ -77,11 +75,9 @@ class LocalEmbeddingEngine:
             return vec.tolist()
 
         for word in words:
-            # Deterministic hash to dimension index
             idx = int(hashlib.md5(word.encode("utf-8")).hexdigest(), 16) % dim
             vec[idx] += 1.0
 
-        # L2 Normalize
         norm = np.linalg.norm(vec)
         if norm > 0:
             vec = vec / norm

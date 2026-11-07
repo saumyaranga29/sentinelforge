@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SentinelForge — AI Developer Workstation</title>
-  <!-- Tailwind CSS -->
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,11 +27,11 @@
 </head>
 <body class="selection:bg-emerald-500/20 selection:text-emerald-300 min-h-screen flex flex-col">
 
-  <!-- Top Navigation Bar -->
+  
   <header class="border-b border-white/[0.08] bg-[#080b11]/90 backdrop-blur-xl sticky top-0 z-50 px-6 py-3">
     <div class="max-w-[1440px] mx-auto flex items-center justify-between">
       
-      <!-- Brand & Tagline -->
+      
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-sm shadow-emerald-950">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -46,27 +46,27 @@
         </div>
       </div>
 
-      <!-- Real-Time Status Pills -->
+      
       <div class="flex items-center gap-2.5">
-        <!-- Model Pill -->
+        
         <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
           <span id="header-model">Detecting runtime environment...</span>
         </div>
 
-        <!-- Privacy Status Pill -->
+        
         <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
           <span id="header-privacy-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           <span id="header-privacy">Processed locally · 0 external calls</span>
         </div>
 
-        <!-- MCP Health Pill -->
+        
         <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-300 font-mono">
           <span id="header-mcp-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
           <span id="header-mcp-status">MCP connecting...</span>
         </div>
 
-        <!-- Docs Link -->
+        
         <a href="/docs" target="_blank" class="px-2.5 py-1 rounded-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-[11px] text-slate-400 hover:text-slate-200 transition-all font-mono">
           OpenAPI ↗
         </a>
@@ -75,22 +75,20 @@
     </div>
   </header>
 
-  <!-- Main Workstation Layout -->
+  
   <main class="max-w-[1440px] w-full mx-auto p-4 flex-1 grid grid-cols-1 lg:grid-cols-[285px_1fr_275px] gap-4">
     
-    <!-- ========================================== -->
-    <!-- LEFT COLUMN: Knowledge Base & Red-Team Mode -->
-    <!-- ========================================== -->
+    
     <aside class="flex flex-col gap-4">
       
-      <!-- Card: Knowledge Base -->
+      
       <div class="workstation-card p-4 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase font-mono">Knowledge Base</h2>
           <span id="kb-count-badge" class="text-[10px] font-mono text-slate-500">syncing...</span>
         </div>
 
-        <!-- Drag & Drop Zone -->
+        
         <div id="drop-zone" class="border border-dashed border-white/[0.12] hover:border-emerald-500/50 rounded-lg p-3 text-center cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all">
           <p class="text-[10.5px] text-slate-400 font-mono">
             Drop PDF · MD · TXT · JSON · PY · JS · TS
@@ -98,21 +96,21 @@
           <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.md,.txt,.json,.py,.js,.ts" />
         </div>
 
-        <!-- Ingested Documents List (Dynamically populated from live /api/rag/stats) -->
+        
         <div id="kb-file-list" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
           <div class="p-2 text-center text-[10.5px] font-mono text-slate-500">
             Syncing indexed knowledge sources...
           </div>
         </div>
 
-        <!-- Footer Stats -->
+        
         <div class="pt-2 border-t border-white/[0.06] text-[10.5px] font-mono text-slate-500 flex items-center justify-between">
           <span id="kb-footer-stats">Loading vector index stats...</span>
         </div>
       </div>
       </div>
 
-      <!-- Card: Red-Team Mode -->
+      
       <div class="workstation-card p-4 flex flex-col gap-2.5">
         <h2 class="text-[11px] font-semibold text-rose-400 tracking-wider uppercase font-mono flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
@@ -126,7 +124,7 @@
         </button>
       </div>
 
-      <!-- Quick Preset Selector -->
+      
       <div class="workstation-card p-3 flex flex-col gap-2 text-xs">
         <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500">Quick Test Presets</span>
         <div class="flex flex-col gap-1.5">
@@ -141,12 +139,10 @@
 
     </aside>
 
-    <!-- ========================================== -->
-    <!-- CENTER COLUMN: Agent Cognitive Workstation -->
-    <!-- ========================================== -->
+    
     <section class="flex flex-col gap-4">
       
-      <!-- Top Prompt Box with Stepper -->
+      
       <div class="workstation-card p-4 flex flex-col gap-3">
         <div class="flex items-start gap-3">
           <div class="flex-1">
@@ -160,7 +156,7 @@
           </button>
         </div>
 
-        <!-- 7-Stage Stepper Bar -->
+        
         <div class="pt-2 border-t border-white/[0.06] flex items-center gap-1.5 overflow-x-auto pb-1">
           <span class="stepper-pill" data-stage="analyse" id="step-analyse">Analyse</span>
           <span class="stepper-pill" data-stage="plan" id="step-plan">Plan</span>
@@ -172,10 +168,10 @@
         </div>
       </div>
 
-      <!-- Main Agent Viewport -->
+      
       <div id="agent-viewport" class="workstation-card flex-1 min-h-[440px] p-5 flex flex-col justify-center">
         
-        <!-- Idle Default State -->
+        
         <div id="viewport-idle" class="text-center max-w-md mx-auto py-12 flex flex-col items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-slate-500">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,25 +187,25 @@
           </p>
         </div>
 
-        <!-- Active Results State -->
+        
         <div id="viewport-active" class="hidden flex flex-col gap-4">
           
-          <!-- Section: Plan & Citations -->
+          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Plan Card -->
+            
             <div class="p-3.5 rounded-lg bg-black/40 border border-white/[0.06] flex flex-col gap-1.5">
               <span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-semibold">Cognitive Plan</span>
               <div id="report-plan" class="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap font-mono max-h-36 overflow-y-auto"></div>
             </div>
 
-            <!-- Citations Card -->
+            
             <div class="p-3.5 rounded-lg bg-black/40 border border-white/[0.06] flex flex-col gap-1.5">
               <span class="text-[10px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">Retrieved Evidence</span>
               <div id="report-citations" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto pr-1 text-xs"></div>
             </div>
           </div>
 
-          <!-- Section: Unified Diff Reviewer -->
+          
           <div class="rounded-lg bg-black/50 border border-white/[0.08] overflow-hidden flex flex-col">
             <div class="px-3.5 py-2 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -223,7 +219,7 @@
             <div id="diff-content" class="p-2 font-mono text-xs overflow-x-auto max-h-56 overflow-y-auto leading-relaxed"></div>
           </div>
 
-          <!-- Section: Sandbox Terminal -->
+          
           <div class="rounded-lg bg-[#05070a] border border-white/[0.08] p-3 flex flex-col gap-1 font-mono text-xs">
             <div class="flex items-center justify-between pb-1 border-b border-white/[0.06]">
               <span class="text-[10.5px] text-slate-400 flex items-center gap-1.5">
@@ -235,7 +231,7 @@
             <pre id="sandbox-output" class="text-[11px] text-slate-400 whitespace-pre-wrap max-h-24 overflow-y-auto mt-1 font-mono">// Test runner output will stream here during sandbox execution</pre>
           </div>
 
-          <!-- Regression / Failure Banner -->
+          
           <div id="regression-warning-banner" class="hidden p-3 rounded-lg bg-rose-950/40 border border-rose-500/50 flex flex-col gap-1.5 transition-all animate-fadeIn">
             <div class="flex items-center gap-2 text-rose-400 font-semibold text-xs font-mono">
               <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
@@ -246,10 +242,10 @@
             </div>
           </div>
 
-          <!-- Approval Result Banner -->
+          
           <div id="approval-result-banner" class="hidden p-4 rounded-lg flex flex-col gap-2.5 transition-all animate-fadeIn"></div>
 
-          <!-- Decision Dock -->
+          
           <div id="decision-dock" class="p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 flex items-center justify-between gap-4">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -278,12 +274,10 @@
 
     </section>
 
-    <!-- ========================================== -->
-    <!-- RIGHT COLUMN: MCP Calls & Sandbox Audit   -->
-    <!-- ========================================== -->
+    
     <aside class="flex flex-col gap-4">
       
-      <!-- Card: MCP Calls -->
+      
       <div class="workstation-card p-4 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase font-mono">MCP Calls</h2>
@@ -325,7 +319,7 @@
         </div>
       </div>
 
-      <!-- Card: Sandbox Audit Stream -->
+      
       <div class="workstation-card p-4 flex flex-col gap-2.5">
         <div class="flex items-center justify-between">
           <h2 class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase font-mono">Sandbox Audit</h2>
@@ -337,7 +331,7 @@
         </div>
       </div>
 
-      <!-- Privacy & Compliance Box -->
+      
       <div class="p-3 rounded-lg bg-black/40 border border-white/[0.06] text-[10.5px] font-mono text-slate-400 flex flex-col gap-1">
         <div class="text-slate-300 font-semibold flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -352,7 +346,7 @@
 
   </main>
 
-  <!-- Interactive JavaScript Engine -->
+  
   <script src="/static/app.js?v=2.4"></script>
 </body>
 </html>

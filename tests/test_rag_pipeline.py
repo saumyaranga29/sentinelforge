@@ -41,12 +41,10 @@ def test_duplicate_content_deduplication(test_vector_store, temp_workspace):
     file_path = temp_workspace / "doc.txt"
     file_path.write_text("Unique invariant text for deduplication verification.", encoding="utf-8")
 
-    # First ingestion: should index
     res1 = test_vector_store.ingest_file(file_path)
     assert res1["status"] == "indexed"
     assert res1["chunks_indexed"] > 0
 
-    # Second ingestion with same content: should skip
     res2 = test_vector_store.ingest_file(file_path)
     assert res2["status"] == "skipped"
     assert res2["reason"] == "duplicate_content_hash"

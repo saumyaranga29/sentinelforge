@@ -72,7 +72,6 @@ def test_timeout_enforced(sandbox, temp_workspace):
 
 def test_output_truncation_limit(sandbox, temp_workspace):
     """Verifies that oversized process output is capped and truncated cleanly."""
-    # Print 100,000 characters
     bomb_code = "print('A' * 100000)"
     res = sandbox.execute(
         command="python",

@@ -19,7 +19,6 @@ def temp_workspace():
         original_ws = settings.workspace_root
         settings.workspace_root = tmp_path
 
-        # Create sample files
         calc_file = tmp_path / "calculator.py"
         calc_file.write_text(
             "def add(a, b):\n    return a + b\n\ndef divide(a, b):\n    return a / b\n",

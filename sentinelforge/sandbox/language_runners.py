@@ -61,7 +61,6 @@ class PythonTestWorkflow:
 
     def _parse_unittest_output(self, output: str, exit_code: int) -> tuple[int, int, int]:
         """Extracts test metrics from unittest stdout/stderr."""
-        # e.g., "Ran 5 tests in 0.012s"
         ran_match = re.search(r"Ran (\d+) test", output)
         total = int(ran_match.group(1)) if ran_match else 0
 
@@ -98,7 +97,6 @@ class JavaScriptTestWorkflow:
         )
 
         output = f"{res.stdout}\n{res.stderr}".strip()
-        # Parse node:test output
         pass_match = re.findall(r"✔", output)
         fail_match = re.findall(r"✖", output)
 

@@ -37,7 +37,6 @@ def test_zero_silent_mutation_invariant(temp_workspace):
 
     report = orchestrator.run(task="Modify calculator logic")
 
-    # Invariant check: Disk file content must be exactly identical to before the agent ran
     current_content = calc_path.read_text(encoding="utf-8")
     assert current_content == initial_content
 
@@ -57,16 +56,13 @@ def test_explicit_approval_applies_patch(test_diff_engine, temp_workspace):
 
     assert proposal.status == "PENDING_APPROVAL"
 
-    # Human approves patch
     applied = test_diff_engine.apply_patch(proposal.patch_id, approved=True)
     assert applied is True
     assert proposal.status == "APPLIED"
 
-    # Verify target file updated
     updated_content = calc_path.read_text(encoding="utf-8")
     assert "def power(a, b):" in updated_content
 
-    # Verify backup created
     backup_file = temp_workspace / "calculator.py.bak"
     assert backup_file.exists()
     assert backup_file.read_text(encoding="utf-8") == orig_content
@@ -100,7 +96,6 @@ def test_broken_patch_blocks_approval(temp_workspace):
         llm_provider=MockLLMProvider(),
     )
 
-    # Intentionally broken implementation: returns incorrect math for add()
     broken_code = "def add(a, b):\n    return a - b - 999\n\ndef divide(a, b):\n    return a / b\n"
 
     report = orchestrator.run(
@@ -109,7 +104,6 @@ def test_broken_patch_blocks_approval(temp_workspace):
         code_override=broken_code,
     )
 
-    # Invariant: Approval must be blocked!
     assert report.can_approve is False
     assert report.regression_detected is True
     assert report.sandbox_success is False
@@ -125,7 +119,6 @@ def test_ast_symbol_check_preserves_public_functions(test_diff_engine, temp_work
     orig_content = "def add(a, b):\n    return a + b\n\ndef multiply(a, b):\n    return a * b\n"
     calc_path.write_text(orig_content, encoding="utf-8")
 
-    # Naked function returned by LLM
     naked_function = "def add(a, b):\n    return a + b + 0\n"
 
     proposal = test_diff_engine.create_patch(
@@ -135,7 +128,6 @@ def test_ast_symbol_check_preserves_public_functions(test_diff_engine, temp_work
         rationale="Update add",
     )
 
-    # AST should surgically merge: multiply should NOT be dropped!
     assert "def multiply" in proposal.modified_content
     assert "def add" in proposal.modified_content
     assert proposal.dropped_symbols == []
@@ -146,7 +138,6 @@ def test_revert_patch_restores_backup(test_diff_engine, temp_workspace):
     calc_path = temp_workspace / "calculator.py"
     orig_content = calc_path.read_text(encoding="utf-8")
 
-    # Apply a patch
     proposal = test_diff_engine.create_patch(
         target_file="calculator.py",
         original_content=orig_content,
@@ -156,7 +147,6 @@ def test_revert_patch_restores_backup(test_diff_engine, temp_workspace):
     test_diff_engine.apply_patch(proposal.patch_id, approved=True)
     assert "# Merged feature" in calc_path.read_text(encoding="utf-8")
 
-    # One-click revert
     result = test_diff_engine.revert_patch("calculator.py")
     assert result["status"] == "REVERTED"
     assert calc_path.read_text(encoding="utf-8") == orig_content

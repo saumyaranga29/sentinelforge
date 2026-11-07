@@ -14,7 +14,6 @@ from sentinelforge.utils.logging import get_logger
 
 logger = get_logger("sentinelforge.mcp.server")
 
-# Initialize Official MCP Server (supports official mcp 2.x and 1.x)
 try:
     try:
         from mcp.server.mcpserver import MCPServer as FastMCP
@@ -31,7 +30,6 @@ except Exception as e:
     logger.warning(f"Official MCP Server initialization notice: {e}. Using standard protocol dispatcher.")
 
 
-# Register Tools on FastMCP if available
 if mcp_app is not None:
     @mcp_app.tool()
     def ingest_content(file_path: str) -> Dict[str, Any]:

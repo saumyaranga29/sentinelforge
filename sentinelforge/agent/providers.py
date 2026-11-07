@@ -24,7 +24,6 @@ class MockLLMProvider(BaseLLMProvider):
     """
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
-        # Check what stage or task is being requested
         low = user_prompt.lower()
         if "analyze" in low or "plan" in low:
             if "refund" in low:

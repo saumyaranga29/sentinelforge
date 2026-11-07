@@ -1,7 +1,4 @@
-/* ==========================================================================
-   SentinelForge — Human-Crafted Developer Workstation
-   Aesthetic: Ultra-Dark Obsidian Slate + Fine Dot Grid + Emerald Accents
-   ========================================================================== */
+
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -42,7 +39,7 @@ code, pre, .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Card Surfaces */
+
 .workstation-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
@@ -54,7 +51,7 @@ code, pre, .font-mono {
   border-color: var(--border-card-hover);
 }
 
-/* Custom Scrollbars */
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -70,7 +67,7 @@ code, pre, .font-mono {
   background: rgba(16, 185, 129, 0.4);
 }
 
-/* Stepper Pill Tabs */
+
 .stepper-pill {
   font-size: 11px;
   font-weight: 500;
@@ -97,7 +94,7 @@ code, pre, .font-mono {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Diff Viewer */
+
 .diff-line {
   display: flex;
   font-family: 'JetBrains Mono', monospace;
@@ -128,7 +125,7 @@ code, pre, .font-mono {
   color: #94a3b8;
 }
 
-/* Status Badges */
+
 .badge-indexed {
   font-size: 10px;
   font-family: 'JetBrains Mono', monospace;
@@ -159,7 +156,7 @@ code, pre, .font-mono {
   border: 1px solid rgba(244, 63, 94, 0.3);
 }
 
-/* Pulse animation */
+
 @keyframes emeraldPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.9); }

@@ -13,7 +13,7 @@ class InjectionScanResult(BaseModel):
     """Result of prompt injection analysis."""
 
     is_suspicious: bool
-    risk_score: float  # 0.0 to 1.0
+    risk_score: float
     detected_patterns: List[str] = Field(default_factory=list)
     sanitized_text: str
 
@@ -24,7 +24,6 @@ class PromptInjectionGuard:
     Treats all external document text as strictly untrusted user-supplied payload.
     """
 
-    # Adversarial patterns commonly found in prompt injection exploits
     INJECTION_PATTERNS = [
         (re.compile(r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions", re.IGNORECASE), "IGNORE_PREVIOUS_INSTRUCTIONS", 0.9),
         (re.compile(r"disregard\s+(all\s+)?(prior|previous)\s+(prompts|rules)", re.IGNORECASE), "DISREGARD_RULES", 0.9),
@@ -79,7 +78,6 @@ class PromptInjectionGuard:
         Escapes XML-like closing tags and special tokens that might simulate system boundaries.
         """
         sanitized = text
-        # Neutralize XML tag escapes
         sanitized = re.sub(r"<\s*/\s*untrusted_context_chunk\s*>", "[ESCAPED_TAG]", sanitized, flags=re.IGNORECASE)
         sanitized = re.sub(r"<\s*/\s*system\s*>", "[ESCAPED_TAG]", sanitized, flags=re.IGNORECASE)
         sanitized = re.sub(r"<\s*\|\s*(im_start|im_end|system)\s*\|\s*>", "[ESCAPED_TOKEN]", sanitized, flags=re.IGNORECASE)

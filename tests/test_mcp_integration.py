@@ -5,7 +5,7 @@ from sentinelforge.mcp.server import mcp_dispatcher
 def test_mcp_tools_discovery():
     """Verifies that an MCP client can discover all registered tools."""
     tools = mcp_dispatcher.list_tools()
-    assert len(tools) >= 6  # Exceeds 5-tool requirement
+    assert len(tools) >= 6
     tool_names = [t["name"] for t in tools]
     assert "ingest_content" in tool_names
     assert "retrieve_context" in tool_names

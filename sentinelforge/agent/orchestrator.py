@@ -68,7 +68,6 @@ class AgentOrchestrator:
         """Runs the complete 7-stage execution loop."""
         logger.info(f"Initiating agent execution loop for task: {task[:80]}")
 
-        # --- Stage 1: Task Analysis ---
         repo_inspection = mcp_dispatcher.call_tool("inspect_repository", {"relative_path": ""})
         analysis_prompt = STAGE_ANALYSIS_PROMPT.format(
             task=task,
@@ -76,19 +75,15 @@ class AgentOrchestrator:
         )
         task_analysis = self.llm.generate(AGENT_SYSTEM_PROMPT, analysis_prompt)
 
-        # --- Stage 2: Plan Generation ---
         plan_prompt = STAGE_PLAN_PROMPT.format(task=task, analysis=task_analysis)
         plan = self.llm.generate(AGENT_SYSTEM_PROMPT, plan_prompt)
 
-        # --- Stage 3: Context Retrieval via MCP ---
         retrieval_res = mcp_dispatcher.call_tool(
             "retrieve_context",
             {"query": task, "top_k": 3},
         )
         citations = retrieval_res.get("results", [])
 
-        # --- Stage 4: Patch Proposal via MCP ---
-        # Identify target file if not provided
         resolved_target = target_file
         if not resolved_target:
             import re
@@ -102,7 +97,6 @@ class AgentOrchestrator:
             elif any(w in task.lower() for w in ["calc", "divide", "arithmetic", "math"]):
                 resolved_target = "calculator.py"
             elif citations:
-                # Infer target from top retrieved citation
                 top_src = citations[0].get("source_file", "")
                 stem = Path(top_src).stem.replace("_spec", "").replace("_policy", "")
                 resolved_target = f"{stem}.py"
@@ -117,11 +111,9 @@ class AgentOrchestrator:
         else:
             original_content = "# New file created by SentinelForge\n"
 
-        # Determine proposed modification
         if code_override:
             modified_content = code_override
         else:
-            # Let LLM generate the proposed code
             prompt = (
                 f"Generate full corrected Python code for '{resolved_target}'.\n"
                 f"Task: {task}\n"
@@ -129,7 +121,6 @@ class AgentOrchestrator:
                 f"Return ONLY valid python code."
             )
             llm_code = self.llm.generate(AGENT_SYSTEM_PROMPT, prompt)
-            # Strip markdown code blocks if present
             if "```" in llm_code:
                 lines = llm_code.splitlines()
                 code_lines = [l for l in lines if not l.startswith("```")]
@@ -137,7 +128,6 @@ class AgentOrchestrator:
             else:
                 modified_content = llm_code
 
-        # Call MCP propose_patch tool
         patch_res = mcp_dispatcher.call_tool(
             "propose_patch",
             {
@@ -151,8 +141,6 @@ class AgentOrchestrator:
         patch_id = patch_res.get("patch_id")
         unified_diff = patch_res.get("unified_diff")
 
-        # --- Stage 5: Sandbox Execution in Isolated Scratch Space ---
-        # Fail-safe: Original repository is NEVER directly mutated during testing.
         sandbox_executed = False
         sandbox_success = False
         baseline_success = False
@@ -171,7 +159,6 @@ class AgentOrchestrator:
         with tempfile.TemporaryDirectory() as scratch_dir:
             scratch_path = Path(scratch_dir)
 
-            # Copy existing workspace into temporary scratch directory
             if self.workspace_root.exists():
                 for item in self.workspace_root.iterdir():
                     if item.name.startswith("."):
@@ -182,7 +169,6 @@ class AgentOrchestrator:
                     else:
                         shutil.copy2(item, dest)
 
-            # Set up matching test file for resolved_target
             target_stem = Path(resolved_target).stem
             test_pattern = f"test_{target_stem}.py"
 
@@ -223,7 +209,6 @@ class AgentOrchestrator:
             else:
                 test_args = ["-m", "unittest", "discover", "-s", str(scratch_path), "-p", "test_*.py"]
 
-            # 1. Baseline Test Execution (Before applying the patch)
             baseline_res = mcp_dispatcher.call_tool(
                 "execute_in_sandbox",
                 {
@@ -237,12 +222,10 @@ class AgentOrchestrator:
             baseline_output = f"{baseline_res.get('stdout', '')}\n{baseline_res.get('stderr', '')}".strip()
             baseline_failures = set(parse_test_failures(baseline_output))
 
-            # 2. Apply proposed patch inside scratch directory (using full modified content)
             staged_file = scratch_path / resolved_target
             staged_file.parent.mkdir(parents=True, exist_ok=True)
             staged_file.write_text(effective_modified_content, encoding="utf-8")
 
-            # 3. Post-Patch Test Execution (After applying the patch)
             sandbox_res = mcp_dispatcher.call_tool(
                 "execute_in_sandbox",
                 {
@@ -269,18 +252,12 @@ class AgentOrchestrator:
                 "newly_failing_tests": newly_failing_tests,
             }
 
-        # --- Stage 6: Self-Critique ---
         critique_prompt = STAGE_CRITIQUE_PROMPT.format(
             diff=unified_diff,
             test_output=raw_test_output,
         )
         self_critique = self.llm.generate(AGENT_SYSTEM_PROMPT, critique_prompt)
 
-        # --- Stage 7: Final Report & Approval Gate Evaluation ---
-        # Verification requirements:
-        # 1. Tests must pass in scratch sandbox
-        # 2. No newly failing tests (regressions) against baseline
-        # 3. No unauthorized dropped public symbols (AST check)
         regression_detected = (not sandbox_success) or bool(newly_failing_tests) or bool(dropped_symbols)
         can_approve = sandbox_success and (len(newly_failing_tests) == 0) and (len(dropped_symbols) == 0)
 

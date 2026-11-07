@@ -13,8 +13,8 @@ class AuditEvent(BaseModel):
     """Structured audit trail record for sandbox and agent actions."""
 
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    event_type: str  # e.g. "SANDBOX_EXECUTION", "PATH_TRAVERSAL_BLOCKED", "PATCH_PROPOSED", "PATCH_APPROVED"
-    severity: str = "INFO"  # INFO, WARNING, SECURITY_ALERT
+    event_type: str
+    severity: str = "INFO"
     request_id: Optional[str] = None
     target_path: Optional[str] = None
     command: Optional[str] = None
@@ -53,14 +53,12 @@ class AuditLogger:
 
         self._in_memory_events.append(event)
 
-        # Log to structured logger
         log_fn = logger.warning if severity in ("WARNING", "SECURITY_ALERT") else logger.info
         log_fn(
             f"Audit [{event_type}] success={success}",
             extra={"extra": event.model_dump()},
         )
 
-        # Append to audit.jsonl
         try:
             with open(self.audit_log_path, "a", encoding="utf-8") as f:
                 f.write(event.model_dump_json() + "\n")

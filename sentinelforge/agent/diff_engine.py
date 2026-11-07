@@ -39,14 +39,10 @@ def ensure_full_file_with_ast(original_content: str, generated_code: str) -> tup
     orig_funcs = extract_public_functions(original_content)
     gen_funcs = extract_public_functions(generated_code)
 
-    # Check if generator dropped functions from original
     dropped = orig_funcs - gen_funcs
     if not dropped:
-        # Generated code preserves all symbols
         return generated_code, []
 
-    # Generator returned a subset (e.g. only 1 function)
-    # Perform surgical replacement of the matching defined functions
     full_code = original_content
     for func_name in gen_funcs:
         if func_name in orig_funcs:
@@ -62,7 +58,6 @@ def ensure_full_file_with_ast(original_content: str, generated_code: str) -> tup
             if new_func_match and pattern.search(full_code):
                 full_code = pattern.sub(new_func_match.group(0).strip(), full_code)
 
-    # Re-verify symbols after surgical merge
     new_funcs = extract_public_functions(full_code)
     remaining_dropped = sorted(list(orig_funcs - new_funcs))
 
@@ -79,7 +74,7 @@ class PatchProposal(BaseModel):
     original_content: str
     modified_content: str
     dropped_symbols: List[str] = Field(default_factory=list)
-    status: str = "PENDING_APPROVAL"  # PENDING_APPROVAL, APPROVED, REJECTED, APPLIED
+    status: str = "PENDING_APPROVAL"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -105,19 +100,15 @@ class DiffEngine:
         rationale: str,
     ) -> PatchProposal:
         """Generates a unified diff from the full file and stages it as PENDING_APPROVAL."""
-        # Validate path stays in workspace
         file_path = Path(target_file)
         SandboxSecurityValidator.validate_path(file_path, self.workspace_root)
         SandboxSecurityValidator.validate_file_extension(file_path)
 
-        # Ensure modified_content is the COMPLETE file (never naked function bodies)
-        # and verify public symbols using AST
         dropped_symbols: List[str] = []
         full_modified = modified_content
         if target_file.endswith(".py") and original_content.strip():
             full_modified, dropped_symbols = ensure_full_file_with_ast(original_content, modified_content)
 
-        # Generate standard unified diff against full original file
         orig_lines = original_content.splitlines(keepends=True)
         mod_lines = full_modified.splitlines(keepends=True)
 
@@ -174,17 +165,14 @@ class DiffEngine:
             )
             return False
 
-        # Human approved: Apply patch safely
         self._active_patch.status = "APPROVED"
         target_path = (self.workspace_root / self._active_patch.target_file).resolve()
         target_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Create backup if file already exists
         if target_path.exists():
             backup_path = target_path.with_suffix(target_path.suffix + ".bak")
             backup_path.write_text(target_path.read_text(encoding="utf-8"), encoding="utf-8")
 
-        # Write modified content
         target_path.write_text(self._active_patch.modified_content, encoding="utf-8")
         self._active_patch.status = "APPLIED"
 

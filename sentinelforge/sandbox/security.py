@@ -14,7 +14,6 @@ class SecurityViolationError(Exception):
 class SandboxSecurityValidator:
     """Enforces strict path containment, command allowlists, and parameter sanitization."""
 
-    # Allowed commands strictly bounded to supported test and syntax check workflows
     COMMAND_ALLOWLIST: Set[str] = {
         "python",
         "pytest",
@@ -22,18 +21,15 @@ class SandboxSecurityValidator:
         "npm",
     }
 
-    # Allowed subcommands / arguments to prevent dangerous arbitrary flags
     SUBCOMMAND_ALLOWLIST: Set[str] = {
         "-m", "py_compile", "unittest", "pytest",
         "--test", "-c", "test"
     }
 
-    # Safe file extensions allowed inside the sandbox workspace
     ALLOWED_EXTENSIONS: Set[str] = {
         ".py", ".js", ".ts", ".json", ".md", ".txt", ".yaml", ".yml", ".pdf"
     }
 
-    # Dangerous shell injection characters
     DANGEROUS_SHELL_CHARS = re.compile(r"[;&|`$<>]|\b(sh|bash|powershell|cmd|curl|wget|nc|chmod|rm)\b", re.IGNORECASE)
 
     @classmethod
@@ -47,11 +43,9 @@ class SandboxSecurityValidator:
         """
         real_workspace = os.path.realpath(str(workspace_root))
 
-        # Normalize path separators for cross-platform traversal defense (e.g. Windows \\ on Linux)
         cand_str = str(candidate_path).replace("\\", "/")
         norm_cand_path = Path(cand_str)
 
-        # If candidate_path is relative, resolve relative to real_workspace
         if not norm_cand_path.is_absolute():
             real_candidate = os.path.realpath(os.path.join(real_workspace, cand_str))
         else:
@@ -60,7 +54,6 @@ class SandboxSecurityValidator:
         norm_workspace = os.path.normcase(real_workspace)
         norm_candidate = os.path.normcase(real_candidate)
 
-        # Check symlink destination if file exists
         cand_p = Path(real_candidate)
         if cand_p.is_symlink():
             target = cand_p.readlink()
@@ -77,8 +70,6 @@ class SandboxSecurityValidator:
                     f"Security Error: Symlink '{candidate_path}' points outside workspace root."
                 )
 
-        # Check path containment
-        # Candidate must start with workspace path plus separator, or match workspace exactly
         is_contained = (
             norm_candidate == norm_workspace
             or norm_candidate.startswith(norm_workspace + os.sep)
@@ -137,7 +128,6 @@ class SandboxSecurityValidator:
                 f"Security Error: Command '{base_cmd}' is not in the sandbox allowlist ({cls.COMMAND_ALLOWLIST})."
             )
 
-        # Check for shell metacharacters in arguments
         full_invocation = f"{command} {' '.join(args)}"
         if cls.DANGEROUS_SHELL_CHARS.search(full_invocation):
             audit_logger.record_event(

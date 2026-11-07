@@ -54,7 +54,6 @@ async def ingest_text(req: IngestTextRequest):
 @router.post("/ingest/upload")
 async def ingest_upload(file: UploadFile = File(...)):
     """Uploads and indexes a document (PDF, Markdown, Python, JS, TS, JSON)."""
-    # Enforce safe file extension
     file_path = Path(file.filename)
     SandboxSecurityValidator.validate_file_extension(file_path)
 

@@ -51,7 +51,6 @@ class SandboxRunner:
 
         scrubbed = {k: v for k, v in os.environ.items() if k.upper() in safe_keys}
 
-        # Keep minimal safe PATH pointing to Python and system binaries
         safe_path_elements = [
             str(Path(sys.executable).parent),
             os.environ.get("SYSTEMROOT", "C:\\Windows") + "\\system32",
@@ -63,7 +62,6 @@ class SandboxRunner:
         scrubbed["PYTHONUNBUFFERED"] = "1"
         scrubbed["PYTHONDONTWRITEBYTECODE"] = "1"
 
-        # Explicitly ensure network isolation indicator
         if not settings.sandbox_allow_network:
             scrubbed["NO_PROXY"] = "*"
             scrubbed["http_proxy"] = "http://127.0.0.1:0"
@@ -85,11 +83,9 @@ class SandboxRunner:
         timeout = timeout_seconds or settings.sandbox_timeout_seconds
         working_dir = self.workspace_root if cwd is None else cwd
 
-        # 1. Security Validations
         validated_cwd = SandboxSecurityValidator.validate_path(working_dir, self.workspace_root)
         SandboxSecurityValidator.validate_command(command, args)
 
-        # 2. Resolve executable
         full_command = [command] + args
         if command == "python":
             full_command[0] = sys.executable
@@ -102,7 +98,6 @@ class SandboxRunner:
         stderr_str = ""
 
         try:
-            # Execute without shell (shell=False prevents shell injection attacks)
             process = subprocess.run(
                 full_command,
                 cwd=str(validated_cwd),
@@ -145,7 +140,6 @@ class SandboxRunner:
 
         duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
-        # 3. Output stream size guard
         max_bytes = settings.sandbox_max_output_bytes
         if len(stdout_str) > max_bytes:
             stdout_str = stdout_str[:max_bytes] + f"\n[OUTPUT TRUNCATED: Exceeded {max_bytes} bytes limit]"

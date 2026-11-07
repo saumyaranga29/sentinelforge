@@ -16,7 +16,6 @@ logger = get_logger("sentinelforge.mcp.tools")
 sandbox_runner = SandboxRunner()
 
 
-# Typed Tool Input Models
 class IngestContentInput(BaseModel):
     file_path: str = Field(description="Relative or absolute path to the document or code file to index")
 
@@ -49,7 +48,6 @@ class DeleteContentInput(BaseModel):
     file_path: str = Field(description="Filename of the indexed document to delete from vector storage")
 
 
-# Tool Implementation Handlers
 def tool_ingest_content(file_path: str) -> Dict[str, Any]:
     """Ingests, chunks, hashes, and indexes a file into the local vector store."""
     path = Path(file_path)

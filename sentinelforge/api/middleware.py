@@ -18,7 +18,6 @@ class RequestContextMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Extract or generate unique Request ID
         headers = dict(scope.get("headers", []))
         req_id = headers.get(b"x-request-id", b"").decode("latin1") or f"req_{uuid.uuid4().hex[:12]}"
         token = request_id_ctx.set(req_id)
