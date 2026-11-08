@@ -113,7 +113,7 @@ make docker-run
 
 ---
 
-## 3. Zero-Cost & Deployment Compliance
+## 4. Zero-Cost & Deployment Compliance
 
 * **Cost**: **INR 0**.
 * **Model Inference**: Pluggable provider supports local Ollama / GGUF or free cloud tiers (Groq free tier) with zero credit card required.
