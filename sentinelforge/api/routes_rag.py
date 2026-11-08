@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel, Field
 
 from sentinelforge.config import settings
+from sentinelforge.rag.injection_guard import PromptInjectionGuard
 from sentinelforge.rag.vector_store import vector_store
 from sentinelforge.sandbox.security import SandboxSecurityValidator
 
@@ -26,6 +27,10 @@ class IngestTextRequest(BaseModel):
     content: str = Field(..., description="Text content to be stored and indexed")
 
 
+class ScanInjectionRequest(BaseModel):
+    content: str = Field(..., description="Text content to scan for prompt injection signatures")
+
+
 @router.post("/query", response_model=QueryResponse)
 async def query_rag(req: QueryRequest):
     """Performs semantic search over locally indexed documents and code with citations."""
@@ -34,6 +39,17 @@ async def query_rag(req: QueryRequest):
         "query": req.query,
         "count": len(citations),
         "results": [c.model_dump() for c in citations],
+    }
+
+
+@router.post("/scan-injection")
+async def scan_injection(req: ScanInjectionRequest):
+    """Scans raw text for prompt injection signatures and returns risk analysis."""
+    scan = PromptInjectionGuard.scan_content(req.content)
+    return {
+        "is_suspicious": scan.is_suspicious,
+        "risk_score": scan.risk_score,
+        "detected_patterns": scan.detected_patterns,
     }
 
 
@@ -47,14 +63,19 @@ async def ingest_text(req: IngestTextRequest):
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(req.content, encoding="utf-8")
 
+    scan = PromptInjectionGuard.scan_content(req.content)
     result = vector_store.ingest_file(target_path)
+    result["injection_scan"] = {
+        "is_suspicious": scan.is_suspicious,
+        "risk_score": scan.risk_score,
+        "detected_patterns": scan.detected_patterns,
+    }
     return result
 
 
 @router.post("/ingest/upload")
 async def ingest_upload(file: UploadFile = File(...)):
     """Uploads and indexes a document (PDF, Markdown, Python, JS, TS, JSON)."""
-    # Enforce safe file extension
     file_path = Path(file.filename)
     SandboxSecurityValidator.validate_file_extension(file_path)
 

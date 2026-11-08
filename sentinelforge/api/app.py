@@ -26,7 +26,6 @@ def bootstrap_sample_data() -> None:
     """
     settings.workspace_root.mkdir(parents=True, exist_ok=True)
 
-    # 1. Sample Python Code
     sample_calc = settings.workspace_root / "calculator.py"
     if not sample_calc.exists():
         sample_calc.write_text(
@@ -44,7 +43,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # 2. Sample Unit Tests
     sample_test = settings.workspace_root / "test_calculator.py"
     if not sample_test.exists():
         sample_test.write_text(
@@ -67,7 +65,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # 3. Sample Specification Document
     docs_dir = settings.workspace_root / "docs"
     docs_dir.mkdir(parents=True, exist_ok=True)
     sample_doc = docs_dir / "calculator_spec.md"
@@ -83,7 +80,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # 4. Sample Refund Module (Demonstrates policy enforcement workflow)
     sample_refund = settings.workspace_root / "refunds.py"
     if not sample_refund.exists():
         sample_refund.write_text(
@@ -95,7 +91,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # 5. Sample Refund Unit Tests
     sample_refund_test = settings.workspace_root / "test_refunds.py"
     if not sample_refund_test.exists():
         sample_refund_test.write_text(
@@ -111,7 +106,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # 6. Sample Refund Policy Document
     sample_policy_doc = docs_dir / "refund_policy.md"
     if not sample_policy_doc.exists():
         sample_policy_doc.write_text(
@@ -126,7 +120,6 @@ def bootstrap_sample_data() -> None:
             encoding="utf-8",
         )
 
-    # Automatically index sample docs and code into local RAG
     try:
         vector_store.ingest_file(sample_calc)
         vector_store.ingest_file(sample_doc)
@@ -159,8 +152,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Middleware
-    # app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.allowed_origins,
@@ -169,12 +160,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Register Routers
     app.include_router(rag_router)
     app.include_router(mcp_router)
     app.include_router(agent_router)
 
-    # Static UI Files & Frontend Dashboard
     static_dir = Path(__file__).parent.parent / "static"
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
@@ -184,10 +173,16 @@ def create_app() -> FastAPI:
         """Serves the SentinelForge Single Page Application dashboard."""
         index_file = static_dir / "index.html"
         if index_file.exists():
-            return FileResponse(index_file)
+            return FileResponse(
+                index_file,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                },
+            )
         return {"message": "SentinelForge API is running. UI not found."}
 
-    # Root & Health Endpoints
     @app.get("/health", tags=["Health"])
     async def health_check():
         """System health and operational status endpoint."""
