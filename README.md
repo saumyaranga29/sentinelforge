@@ -1,7 +1,7 @@
-# Project SentinelForge
+# SentinelForge
 
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 [![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-brightgreen.svg)](https://python.org)
 [![FastMCP](https://img.shields.io/badge/MCP-Official%20FastMCP%201.3+-purple.svg)](https://modelcontextprotocol.io)
 
@@ -113,78 +113,7 @@ make docker-run
 
 ---
 
-## 4. API Endpoints Reference
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Health status, active provider, local vs external indicator |
-| `GET` | `/openapi.json` | Generated OpenAPI 3.1 machine-readable specification |
-| `POST` | `/api/rag/query` | Semantic search with source citations & injection defense |
-| `POST` | `/api/rag/ingest/text` | Ingests raw text into local vector store |
-| `POST` | `/api/rag/ingest/upload` | Uploads document (PDF, MD, Code, JSON) |
-| `GET` | `/api/rag/stats` | Vector store statistics and chunk counts |
-| `GET` | `/api/mcp/tools` | Discovers registered MCP tools and JSON schemas |
-| `POST` | `/api/mcp/tools/invoke` | Invokes an MCP tool with validated arguments |
-| `GET` | `/api/mcp/resources` | Reads registered MCP resource by URI |
-| `POST` | `/api/mcp/prompts` | Renders registered MCP prompt template |
-| `POST` | `/api/agent/run` | Triggers the 7-stage agent loop for a coding task |
-| `GET` | `/api/agent/patch/active` | Inspects currently staged unified diff proposal |
-| `POST` | `/api/agent/patch/approve` | Explicit human approval gate (`APPROVE` / `REJECT`) |
-| `GET` | `/api/audit/logs` | Structured audit trail of sandbox & agent executions |
-
----
-
-## 5. Security & Adversarial Test Matrix (Bonus: >20 Automated Tests)
-
-SentinelForge includes **35 automated tests**, with **14 adversarial & security tests**:
-
-| Test Case | Attack / Adversarial Vector | Defense Mechanism | Test Status |
-| :--- | :--- | :--- | :--- |
-| `test_path_traversal_blocked` | `../../etc/passwd` | Canonical path containment | Passed |
-| `test_windows_path_traversal` | `..\..\Windows\win.ini` | Windows drive root escape check | Passed |
-| `test_unauthorized_command` | `curl`, `wget`, `bash` | Strict command allowlist | Passed |
-| `test_shell_injection_metacharacters` | `python; rm -rf /`, `cat \| nc` | Shell metacharacter regex block | Passed |
-| `test_disallowed_extension` | `payload.exe`, `malware.bat` | Extension allowlist | Passed |
-| `test_timeout_enforced` | `time.sleep(10)` | Subprocess execution timeout | Passed |
-| `test_output_truncation_limit` | Printing 100,000 chars | Stream buffer cap at 50KB | Passed |
-| `test_environment_scrubbing` | Host `SECRET_API_KEY` | Environment scrubbing | Passed |
-| `test_instruction_override` | `ignore previous instructions` | `PromptInjectionGuard` scanner | Passed |
-| `test_jailbreak_mode` | `You are now in DAN mode` | Jailbreak signature detector | Passed |
-| `test_delimiter_neutralization` | `</untrusted_context_chunk>` | XML delimiter escaping | Passed |
-| `test_uuid_encapsulation_boundary` | Context escaping | Cryptographic UUID container | Passed |
-| `test_zero_silent_mutation` | Unapproved repository mutation | Human-in-the-loop approval gate | Passed |
-
----
-
-## 6. In-Repository Retrieval Benchmark (Bonus: Extensive Benchmark Suite)
-
-Run the golden benchmark suite directly:
-```bash
-python eval/run_eval.py
-```
-Outputs:
-* **8 Golden Queries** covering architecture, error handling, test verification, and documentation.
-* **Retrieval Metrics**: Hit@1 (75.0%), Hit@3 (100.0%), Hit@5 (100.0%), MRR (0.8750).
-* **Latency Telemetry**: Millisecond-accurate retrieval latency per query (~10-50ms avg).
-* **Failure Categorization**: Root-cause analysis of any missed citations.
-
----
-
-## 7. Claimed Bonus Engineering Points (+8 Points)
-
-Per Section 6 of the assessment rubric, SentinelForge explicitly focuses on and claims the following **4 key bonus capabilities**:
-
-| Bonus Capability | Rubric Max | Implementation in SentinelForge |
-| :--- | :---: | :--- |
-| **Six or more meaningful MCP tools** | **+2** | **7 typed tools** implemented in `sentinelforge/mcp/tools.py` (`ingest_content`, `retrieve_context`, `inspect_repository`, `propose_patch`, `execute_in_sandbox`, `system_status`, `delete_indexed_content`). |
-| **More than 20 meaningful automated tests** | **+2** | **35 automated tests** across unit, security, RAG, MCP, and API suites (`pytest tests -v`). |
-| **Complex prompt-injection detection and adversarial evaluation beyond baseline separation** | **+2** | Dual-layer heuristic scanner, delimiter neutralization, and cryptographic UUID boundary encapsulation in `sentinelforge/rag/injection_guard.py` + `tests/test_adversarial_rag.py`. |
-| **An extensive benchmark suite with retrieval metrics, latency analysis, and failure categorisation** | **+2** | In-repo benchmark harness (`eval/run_eval.py`) evaluating Hit@1/3/5, MRR, latency, and failure classification against 8 golden queries. |
-| **Bonus Total Claimed** | **+8 / +8** | Total Projected Score: **108 / 100** |
-
----
-
-## 8. Zero-Cost & Deployment Compliance
+## 3. Zero-Cost & Deployment Compliance
 
 * **Cost**: **INR 0**.
 * **Model Inference**: Pluggable provider supports local Ollama / GGUF or free cloud tiers (Groq free tier) with zero credit card required.
