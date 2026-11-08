@@ -135,7 +135,7 @@ Security is a foundational part of SentinelForge rather than an additional featu
 
 ---
 
-## 👩‍💻 Author
+## 👩‍💻 Made By
 
 **Saumya Ranga**
 
