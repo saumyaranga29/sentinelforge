@@ -52,7 +52,6 @@
 | Resource | Link |
 |---|---|
 | Live Platform | https://sentinelforge-sn45.onrender.com |
-| API Documentation | https://sentinelforge-sn45.onrender.com/docs |
 | GitHub Repository | https://github.com/saumyaranga29/sentinelforge |
 | Health Endpoint | https://sentinelforge-sn45.onrender.com/health |
 
@@ -111,22 +110,6 @@ Security is a foundational part of SentinelForge rather than an additional featu
 | Prompt injection | Injection detection and context isolation |
 | Unauthorized code modification | Human approval gate |
 
-### Adversarial Testing
-
-The project includes security-oriented test cases covering:
-
-- Unix and Windows path traversal.
-- Unauthorized command execution.
-- Shell injection attempts.
-- Disallowed file extensions.
-- Execution timeout enforcement.
-- Output truncation.
-- Environment variable isolation.
-- Instruction override attacks.
-- Jailbreak patterns.
-- Delimiter neutralization.
-- UUID context encapsulation.
-- Prevention of unapproved repository mutations.
 
 ---
 
